@@ -1,10 +1,13 @@
 FLAGS = -std=c++11 -Wall -g -o
-SOURCE = main.cpp
+SOURCE = travelMain.cpp
 ITEM = travelMonitor
+SOURCE2 = monitorMain.cpp
+ITEM2 = monitor
 
 compile : $(SOURCE)
 	# gcc $(FLAGS) $(ITEM) $(SOURCE)
 	g++ $(FLAGS) $(ITEM) $(SOURCE)
+	g++ $(FLAGS) $(ITEM2) $(SOURCE2)
 
 run : compile
 	./$(ITEM)
