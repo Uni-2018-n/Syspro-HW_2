@@ -23,14 +23,38 @@ then
     exit 1
 fi
 
+mkdir -p $2
 
+declare -A dict
 
 readarray lines < "$1"
-
 for line in "${lines[@]}"
 do
     curr=(${line})
-    echo ${curr[3]}
+    if [ ! -e "$2/${curr[3]}" ]
+    then
+        mkdir -p "$2/${curr[3]}"
+    fi
+    if [ ! -v dict[${curr[3]}] ]
+    then 
+        touch "$2/${curr[3]}/${curr[3]}-1.txt"
+        echo -n "$line" >> "$2/${curr[3]}/${curr[3]}-1.txt"
+        dict[${curr[3]}]=2
+        continue
+    fi
+    if [ ! -e "$2/${curr[3]}/${curr[3]}-${dict[${curr[3]}]}.txt" ]
+    then
+        touch "$2/${curr[3]}/${curr[3]}-${dict[${curr[3]}]}.txt"
+    fi
+
+    echo -n "$line" >> "$2/${curr[3]}/${curr[3]}-${dict[${curr[3]}]}.txt"
+
+    if [ "${dict[${curr[3]}]}" -eq "$3" ]
+    then 
+        dict[${curr[3]}]=1
+    else
+        dict[${curr[3]}]="$((${dict[${curr[3]}]} + 1))"
+    fi
 done
 
 exit 0
