@@ -1,5 +1,5 @@
 FLAGS = -std=c++11 -Wall -g -o
-SOURCE = travelMain.cpp
+SOURCE = travelMain.cpp sList.cpp
 ITEM = travelMonitor
 SOURCE2 = monitorMain.cpp
 ITEM2 = monitor

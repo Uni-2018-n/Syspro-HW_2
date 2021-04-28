@@ -1,12 +1,17 @@
+#include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
 #include <cstring>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
+
+#include "sList.hpp"
 
 using namespace std;
 
@@ -38,7 +43,35 @@ int main(int argc, const char** argv) {
         cout << "Error! Directory can not open!" << endl;
         return -1;
     }
-    closedir(inputDir);
+
+    struct dirent *dirent;
+    SLHeader countryList;
+    while((dirent=readdir(inputDir)) != NULL){
+        if(strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..")==0){
+            continue;
+        }
+        countryList.insert(dirent->d_name);
+    }
+
+    int activeMonitors;
+    if(countryList.count < numMonitors){
+        activeMonitors = countryList.count;
+    }else{
+        activeMonitors = numMonitors;
+    }
+    string curr = countryList.popFirst();
+    string toGiveDirs[activeMonitors][int(countryList.count/activeMonitors)+1];
+    int i=0;
+    int j=0;
+    while(strcmp(curr.c_str(), "") != 0){
+        toGiveDirs[i][j] = curr;
+        i++;
+        if(i ==activeMonitors){
+            i=0;
+            j++;
+        }
+        curr = countryList.popFirst();
+    }
 
     int readfds[numMonitors];
     int writefds[numMonitors];
@@ -75,7 +108,7 @@ int main(int argc, const char** argv) {
         }
     }
 
-
+    closedir(inputDir);
     for(int i=0;i<numMonitors;i++){
         close(readfds[i]);
         close(writefds[i]);
