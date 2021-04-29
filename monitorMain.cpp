@@ -25,8 +25,67 @@ int main(int argc, const char** argv) {
         cout << "Error" << endl;
     }
 
-    
+    int bufferSize;
+    if(read(readfd, &bufferSize, sizeof(int)) > 0){
+        //error
+    }
+    cout << "child " << getpid() << ": " << bufferSize << endl;
 
+    char buff[bufferSize];
+    int numOfCountries;
+    if(bufferSize < int(sizeof(int))){
+        int index;
+        string temp;
+        if(read(readfd, buff, bufferSize) < 0){
+            //error
+        }
+        temp = temp + buff;
+        index = bufferSize;
+        while(index < int(sizeof(int))){
+            if(read(readfd, buff, bufferSize) < 0){
+                //error
+            }
+            temp = temp + buff;
+            index = index + bufferSize;
+        }
+        numOfCountries = stoi(temp);
+    }else{
+        if(read(readfd, buff, bufferSize) < 0){
+            //error
+        }
+        numOfCountries = atoi(buff);
+    }
+    string dirs[numOfCountries];
+    for(int i=0;i<numOfCountries;i++){
+        if(read(readfd, buff, bufferSize) < 0){
+                //error       
+        }
+        if(strcmp(buff, "DirDone") == 0){
+            break;
+        }
+        int tempSize = atoi(buff);
+        string curr ="";
+        if(tempSize >= bufferSize){
+            if(read(readfd, buff, bufferSize) < 0){
+                //error
+            }
+            curr = buff;
+        }else{
+            int index=0;
+            while(index < tempSize){
+                if(read(readfd, buff, bufferSize) < 0){
+                //error
+                }
+                curr = curr+buff;
+                index = bufferSize;
+            }
+        }
+        dirs[i] = curr;
+    }
+
+    // for(int i=0;i<numOfCountries;i++){
+    //     cout << getpid() << ": " << dirs[i] << endl;
+    // }
 
     close(readfd);
     close(writefd);

@@ -73,11 +73,11 @@ int main(int argc, const char** argv) {
         curr = countryList.popFirst();
     }
 
-    int readfds[numMonitors];
-    int writefds[numMonitors];
-    pid_t monitorPids[numMonitors];
+    int readfds[activeMonitors];
+    int writefds[activeMonitors];
+    pid_t monitorPids[activeMonitors];
 
-    for(int i=0;i<numMonitors;i++){
+    for(int i=0;i<activeMonitors;i++){
         string read_temp = "/tmp/fifoR." + to_string(i);
         string write_temp = "/tmp/fifoW."+ to_string(i);
         if((mkfifo(read_temp.c_str(), PERMS)) <0){
@@ -105,6 +105,68 @@ int main(int argc, const char** argv) {
         }
         if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
             cout << "Error cant open write" << endl;
+        }
+        
+        if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){
+            //error
+        }
+    }
+    for(int i=0;i<activeMonitors;i++){
+        char buff[bufferSize];
+        if(bufferSize < sizeof(int)){ 
+            strncpy(buff, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])).c_str(), bufferSize);
+            if(write(writefds[i], buff, bufferSize) != bufferSize){
+                //error
+            }
+            int index = bufferSize+1;
+            while(index < sizeof(int)){
+                strncpy(buff, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])).c_str()+index, bufferSize);
+                if(write(writefds[i], buff, bufferSize) != bufferSize){
+                    //error
+                }
+                index = index + bufferSize +1;
+            }
+        }else{
+            int temp = sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]);
+            if(write(writefds[i], to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])).c_str(), bufferSize) != bufferSize){
+                //error
+            }
+        }
+        for(int j=0;j<sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]);j++){
+            int index;
+            string temp;
+            if(write(writefds[i], to_string(sizeof(toGiveDirs[i][j])).c_str(), sizeof(toGiveDirs[i][j])) != sizeof(toGiveDirs[i][j])){
+                //error
+            }
+            if(bufferSize < sizeof(toGiveDirs[i][j])){
+                strncpy(buff, toGiveDirs[i][j].c_str(), bufferSize);
+                if(write(writefds[i], buff, bufferSize) != bufferSize){
+                    //error
+                }
+                index = bufferSize+1;
+                if(index >= sizeof(toGiveDirs[i][j])){
+                    index = 0;
+                }
+                while(index != 0){
+                    strncpy(buff, (toGiveDirs[i][j].c_str())+index, bufferSize);
+                    if(write(writefds[i], buff, bufferSize) != bufferSize){
+                        //error
+                    }
+                    index = index+bufferSize+1;
+                    if(index >= sizeof(toGiveDirs[i][j])){
+                        index =0;
+                    }
+                }
+            }else{
+                strncpy(buff, toGiveDirs[i][j].c_str(), bufferSize);
+                if(write(writefds[i], buff, bufferSize) != bufferSize){
+                    //error
+                }
+            }
+        }
+        strncpy(buff, "DirDone", bufferSize);
+        if(write(writefds[i], buff, bufferSize) != bufferSize){
+            //error
         }
     }
 
