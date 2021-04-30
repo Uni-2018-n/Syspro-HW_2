@@ -22,7 +22,7 @@ void writePipe(int fd, int size, int bufferSize, string txt){
                 //error
             }
             int index = bufferSize+1;
-            while(index < sizeof(int)){
+            while(index < size){
                 strncpy(buff, txt.c_str()+index, bufferSize);
                 if(write(fd, buff, bufferSize) != bufferSize){
                     //error

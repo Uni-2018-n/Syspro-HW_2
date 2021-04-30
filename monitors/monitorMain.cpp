@@ -31,11 +31,9 @@ int main(int argc, const char** argv) {
     if(read(readfd, &bufferSize, sizeof(int)) > 0){
         //error
     }
-    cout << "child " << getpid() << ": " << bufferSize << endl;
 
     char buff[bufferSize];
     int numOfCountries =stoi(readPipe(readfd, int(sizeof(int)), bufferSize));
-    cout << getpid() << ": " << numOfCountries << endl;
     string dirs[numOfCountries];
     for(int i=0;i<numOfCountries;i++){
         if(read(readfd, buff, bufferSize) < 0){
