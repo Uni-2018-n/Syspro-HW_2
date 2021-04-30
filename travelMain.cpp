@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include "funcs.hpp"
 #include "sList.hpp"
 
 using namespace std;
@@ -113,56 +114,12 @@ int main(int argc, const char** argv) {
     }
     for(int i=0;i<activeMonitors;i++){
         char buff[bufferSize];
-        if(bufferSize < sizeof(int)){ 
-            strncpy(buff, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])).c_str(), bufferSize);
-            if(write(writefds[i], buff, bufferSize) != bufferSize){
-                //error
-            }
-            int index = bufferSize+1;
-            while(index < sizeof(int)){
-                strncpy(buff, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])).c_str()+index, bufferSize);
-                if(write(writefds[i], buff, bufferSize) != bufferSize){
-                    //error
-                }
-                index = index + bufferSize +1;
-            }
-        }else{
-            int temp = sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]);
-            if(write(writefds[i], to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])).c_str(), bufferSize) != bufferSize){
-                //error
-            }
-        }
+        writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])));
         for(int j=0;j<sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]);j++){
             int index;
-            string temp;
-            if(write(writefds[i], to_string(sizeof(toGiveDirs[i][j])).c_str(), sizeof(toGiveDirs[i][j])) != sizeof(toGiveDirs[i][j])){
-                //error
-            }
-            if(bufferSize < sizeof(toGiveDirs[i][j])){
-                strncpy(buff, toGiveDirs[i][j].c_str(), bufferSize);
-                if(write(writefds[i], buff, bufferSize) != bufferSize){
-                    //error
-                }
-                index = bufferSize+1;
-                if(index >= sizeof(toGiveDirs[i][j])){
-                    index = 0;
-                }
-                while(index != 0){
-                    strncpy(buff, (toGiveDirs[i][j].c_str())+index, bufferSize);
-                    if(write(writefds[i], buff, bufferSize) != bufferSize){
-                        //error
-                    }
-                    index = index+bufferSize+1;
-                    if(index >= sizeof(toGiveDirs[i][j])){
-                        index =0;
-                    }
-                }
-            }else{
-                strncpy(buff, toGiveDirs[i][j].c_str(), bufferSize);
-                if(write(writefds[i], buff, bufferSize) != bufferSize){
-                    //error
-                }
-            }
+            writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(sizeof(toGiveDirs[i][j])));
+            // continue;
+            writePipe(writefds[i], int(sizeof(toGiveDirs[i][j])), bufferSize, toGiveDirs[i][j]);
         }
         strncpy(buff, "DirDone", bufferSize);
         if(write(writefds[i], buff, bufferSize) != bufferSize){

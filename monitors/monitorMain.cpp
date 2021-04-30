@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/errno.h>
@@ -13,6 +14,7 @@
 
 #include <dirent.h>
 
+#include "funcs.hpp"
 
 using namespace std;
 
@@ -32,55 +34,18 @@ int main(int argc, const char** argv) {
     cout << "child " << getpid() << ": " << bufferSize << endl;
 
     char buff[bufferSize];
-    int numOfCountries;
-    if(bufferSize < int(sizeof(int))){
-        int index;
-        string temp;
-        if(read(readfd, buff, bufferSize) < 0){
-            //error
-        }
-        temp = temp + buff;
-        index = bufferSize;
-        while(index < int(sizeof(int))){
-            if(read(readfd, buff, bufferSize) < 0){
-                //error
-            }
-            temp = temp + buff;
-            index = index + bufferSize;
-        }
-        numOfCountries = stoi(temp);
-    }else{
-        if(read(readfd, buff, bufferSize) < 0){
-            //error
-        }
-        numOfCountries = atoi(buff);
-    }
+    int numOfCountries =stoi(readPipe(readfd, int(sizeof(int)), bufferSize));
+    cout << getpid() << ": " << numOfCountries << endl;
     string dirs[numOfCountries];
     for(int i=0;i<numOfCountries;i++){
         if(read(readfd, buff, bufferSize) < 0){
-                //error       
+                cout << "error" << endl;
         }
         if(strcmp(buff, "DirDone") == 0){
             break;
         }
-        int tempSize = atoi(buff);
-        string curr ="";
-        if(tempSize >= bufferSize){
-            if(read(readfd, buff, bufferSize) < 0){
-                //error
-            }
-            curr = buff;
-        }else{
-            int index=0;
-            while(index < tempSize){
-                if(read(readfd, buff, bufferSize) < 0){
-                //error
-                }
-                curr = curr+buff;
-                index = bufferSize;
-            }
-        }
-        dirs[i] = curr;
+        int tempSize = stoi(readPipe(readfd, int(sizeof(int)), bufferSize, buff));
+        dirs[i] = readPipe(readfd, tempSize, bufferSize);
     }
 
     // for(int i=0;i<numOfCountries;i++){
