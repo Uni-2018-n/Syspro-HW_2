@@ -32,7 +32,7 @@ int main(int argc, const char** argv) {
         }else if(strcmp(argv[i], "-b")==0){
             bufferSize = atoi(argv[i+1]);
         }else if(strcmp(argv[i], "-s")==0){
-            bloomSize = atoi(argv[i+1]) *8;
+            bloomSize = atoi(argv[i+1]);
         }else if(strcmp(argv[i], "-i")==0){
             pathToDirs = new char[strlen(argv[i+1])+1]();
             strcpy(pathToDirs, argv[i+1]);

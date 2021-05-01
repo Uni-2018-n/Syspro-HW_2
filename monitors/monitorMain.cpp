@@ -17,6 +17,7 @@
 
 #include "funcs.hpp"
 #include "../fromProjectOne/generalList.hpp"
+#include "../fromProjectOne/Structures/bloomFilter.hpp"
 
 using namespace std;
 
@@ -83,6 +84,11 @@ int main(int argc, const char** argv) {
     }
     // main_list->vaccineStatusBloom(6854, "Paralytic-Shellfish-Poisoning");
     // cout << "ending" << endl;
+
+    cout << getpid() << ": " << main_list->getCountViruses() << endl;
+    string* temp_blooms = main_list->getBlooms();
+    
+
     delete main_list;
     close(readfd);
     close(writefd);

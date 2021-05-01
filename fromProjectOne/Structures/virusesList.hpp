@@ -32,10 +32,14 @@ public:
 class VirlistHeader{
   VirlistNode* start;
   VirlistNode* end;
+  int vir_count;
   int bloom_len;//used so when we creat a new virus it gets it as argument
 public:
   VirlistHeader(int);
   ~VirlistHeader();
+
+  string* getBlooms();
+  int getCount();
 
   VirlistNode* insertVirus(string i);
   VirlistNode* searchVirus(string);

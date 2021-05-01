@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include "bloomFilter.hpp"
+#include <unistd.h>
 
 using namespace std;
 
@@ -9,6 +10,22 @@ len(l){
   array = new char[len]();//initializes an array of chars with 0 so every bit is empty
   for(int i=0;i<len;i++){
     array[i] = 0;
+  }
+}
+
+bloomFilter::bloomFilter(string i){
+  int pos = 0;
+  if((pos = i.find('\\')) == -1){
+    //error
+  }
+  string curr_s = i.substr(0, pos);
+  len= stoi(curr_s);
+  i.erase(0, pos+'\\');
+  char curr[i.length()+1];
+  strcpy(curr, i.c_str());
+  array = new char[len]();
+  for(int i=0;i<len;i++){
+    array[i] = curr[i];
   }
 }
 
@@ -43,6 +60,23 @@ bool bloomFilter::is_inside(int s){
   delete[] s_char;
   return true;
 }
+
+string bloomFilter::toString(){
+  string temp = "";
+  temp = to_string(len) + '\\';
+  for(int i=0;i<len;i++){
+    temp = temp + to_string(array[i]);
+  }
+  return temp;
+}
+
+void bloomFilter::testPrint(){
+  for(int i=0;i<len;i++){
+    cout << getpid() << ": " << array[i];
+  }
+  cout << endl;
+}
+
 
 
 

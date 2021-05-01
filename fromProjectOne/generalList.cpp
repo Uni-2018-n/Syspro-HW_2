@@ -1,4 +1,5 @@
 #include "generalList.hpp"
+#include "Structures/virusesList.hpp"
 #include <string>
 
 ////////////////////////////listNode
@@ -123,6 +124,14 @@ void GlistHeader::insertRecord(string line, bool flag){
     }
     temp_virus->insertRecord(new_node->getCitizen()->citizenId, new_node->getCitizen(), temp[6], temp[7], flag);//and add the citizen to the virus to be marked vaccinated or not 
   }
+}
+
+string* GlistHeader::getBlooms(){
+  return viruses->getBlooms();
+}
+
+int GlistHeader::getCountViruses(){
+  return viruses->getCount();
 }
 
 void GlistHeader::vaccineStatusBloom(int i, string v){

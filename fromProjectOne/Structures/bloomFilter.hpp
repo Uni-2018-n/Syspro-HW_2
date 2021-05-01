@@ -1,6 +1,9 @@
 #ifndef _BLOOMFILTER_HPP_
 #define _BLOOMFILTER_HPP_
 
+#include <iostream>
+using namespace std;
+
 class bloomFilter{
   int len;
   char* array;
@@ -11,9 +14,12 @@ class bloomFilter{
   unsigned long hash_i(unsigned char *str, unsigned int i);
 public:
   bloomFilter(int l);
+  bloomFilter(string i);
   ~bloomFilter();
   void insert(int s);
   bool is_inside(int s);
+  string toString();
+  void testPrint();
 };
 
 #endif

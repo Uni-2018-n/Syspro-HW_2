@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "virusesList.hpp"
 #include "skipList.hpp"
 
@@ -99,6 +100,7 @@ VirlistHeader::VirlistHeader(int i):
 bloom_len(i){
   start = NULL;
   end = NULL;
+  vir_count =0;
 }
 
 VirlistHeader::~VirlistHeader(){
@@ -111,6 +113,21 @@ VirlistHeader::~VirlistHeader(){
   }
 }
 
+string* VirlistHeader::getBlooms(){
+  VirlistNode* temp = start;
+  string* curr = new string[vir_count];
+  int i=0;
+  while(temp != NULL){
+    curr[i] = temp->getItem() + '\\' + temp->getBloom()->toString();
+    i++;
+  }
+  return curr;
+}
+
+int VirlistHeader::getCount(){
+  return vir_count;
+}
+
 VirlistNode* VirlistHeader::insertVirus(string i){//simple insert at end method for viruses
   VirlistNode* new_node = new VirlistNode(i, bloom_len);
   if(start == NULL){
@@ -120,6 +137,7 @@ VirlistNode* VirlistHeader::insertVirus(string i){//simple insert at end method 
     end->setNext(new_node);
     end = new_node;
   }
+  vir_count++;
   return new_node;
 }
 
