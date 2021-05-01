@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cstring>
 
 #include <stdio.h>
@@ -15,6 +16,7 @@
 #include <dirent.h>
 
 #include "funcs.hpp"
+#include "../fromProjectOne/generalList.hpp"
 
 using namespace std;
 
@@ -28,11 +30,12 @@ int main(int argc, const char** argv) {
     }
 
     int bufferSize;
-    if(read(readfd, &bufferSize, sizeof(int)) > 0){
-        //error
+    if(read(readfd, &bufferSize, sizeof(int)) < 0){
+        cout << "Error" << endl;
     }
 
     char buff[bufferSize];
+    int bloomSize = stoi(readPipe(readfd, int(sizeof(int)), bufferSize));
     int numOfCountries =stoi(readPipe(readfd, int(sizeof(int)), bufferSize));
     string dirs[numOfCountries];
     for(int i=0;i<numOfCountries;i++){
@@ -50,6 +53,37 @@ int main(int argc, const char** argv) {
     //     cout << getpid() << ": " << dirs[i] << endl;
     // }
 
+    GlistHeader* main_list = new GlistHeader(bloomSize);
+    
+    for(int i=0;i<numOfCountries;i++){
+        if(strcmp(dirs[i].c_str(), "") == 0){
+            continue;
+        }
+        DIR *curr_dir;
+        if((curr_dir = opendir(("input_dir/"+dirs[i]+'/').c_str()))== NULL){
+            cout << "error" << endl;
+        }
+        struct dirent *dirent;
+        while((dirent=readdir(curr_dir)) != NULL){
+            if(strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..")==0){
+                continue;
+            }
+            ifstream records("input_dir/"+dirs[i]+"/"+dirent->d_name);
+            if(records.fail()){
+                cout << "error record open" << endl;
+            }
+            string line;
+            while(getline(records, line)){
+                // cout << line << endl;
+                main_list->insertRecord(line, false);
+            }
+            records.close();
+        }
+        closedir(curr_dir);
+    }
+    // main_list->vaccineStatusBloom(6854, "Paralytic-Shellfish-Poisoning");
+    // cout << "ending" << endl;
+    delete main_list;
     close(readfd);
     close(writefd);
     if(unlink(argv[0]) <0){
@@ -58,5 +92,6 @@ int main(int argc, const char** argv) {
     if(unlink(argv[1]) <0){
         cout << "cant unling" << endl;
     }
+    // cout << "bye" << endl;
     return 0;
 }

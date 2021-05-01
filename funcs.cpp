@@ -17,21 +17,21 @@ using namespace std;
 void writePipe(int fd, int size, int bufferSize, string txt){
     char buff[bufferSize];
     if(bufferSize < size){ 
-            strncpy(buff, txt.c_str(), bufferSize);
+        strncpy(buff, txt.c_str(), bufferSize);
+        if(write(fd, buff, bufferSize) != bufferSize){
+            //error
+        }
+        int index = bufferSize+1;
+        while(index < size){
+            strncpy(buff, txt.c_str()+index, bufferSize);
             if(write(fd, buff, bufferSize) != bufferSize){
                 //error
             }
-            int index = bufferSize+1;
-            while(index < size){
-                strncpy(buff, txt.c_str()+index, bufferSize);
-                if(write(fd, buff, bufferSize) != bufferSize){
-                    //error
-                }
-                index = index + bufferSize +1;
-            }
-        }else{
-            if(write(fd, txt.c_str(), bufferSize) != bufferSize){
-                //error
-            }
+            index = index + bufferSize +1;
         }
+    }else{
+        if(write(fd, txt.c_str(), bufferSize) != bufferSize){
+            //error
+        }
+    }
 }

@@ -101,7 +101,7 @@ int main(int argc, const char** argv) {
             monitorPids[i]=pid;
         }
 
-        if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
+        if((readfds[i] = open(read_temp.c_str(), O_RDONLY | O_NONBLOCK)) < 0){
             cout << "Error cant open read" << endl;
         }
         if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
@@ -114,6 +114,7 @@ int main(int argc, const char** argv) {
     }
     for(int i=0;i<activeMonitors;i++){
         char buff[bufferSize];
+        writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(bloomSize));
         writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])));
         for(int j=0;j<sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]);j++){
             int index;
@@ -127,11 +128,13 @@ int main(int argc, const char** argv) {
         }
     }
 
+    delete[] pathToDirs;
     closedir(inputDir);
     for(int i=0;i<numMonitors;i++){
         close(readfds[i]);
         close(writefds[i]);
     }
     
+    // cout << "parent byee" << endl;
     return 0;
 }
