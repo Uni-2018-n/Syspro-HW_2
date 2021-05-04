@@ -4,6 +4,7 @@
 using namespace std;
 
 
-void writePipe(int fd, int size, int bufferSize, string txt);
+void writePipeInt(int fd, int bufferSize, int t);
+void writePipe(int fd, int bufferSize, string txt);
 
 #endif

@@ -11,17 +11,23 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-string readPipe(int fd, int size, int bufferSize){
-    char buff[bufferSize];
+int readPipeInt(int fd, int bufferSize){
+    char* buff = new char[bufferSize];
     string temp="";
-    if(bufferSize < size){
-        int index=0;
-        while(index < size){
+    if(bufferSize < int(sizeof(int))){
+        int index =0;
+        while(index <= int(sizeof(int))){
+            memset(buff, 0, bufferSize);
             if(read(fd, buff, bufferSize) < 0){
                 //error
             }
-            temp = temp + buff;
-            index = index + bufferSize;
+            if(strcmp(buff, "") == 0){
+                break;
+            }
+            for(int k=0;k<bufferSize;k++){
+                temp = temp + buff[k];
+            }
+            index += bufferSize;
         }
     }else{
         if(read(fd, buff, bufferSize) < 0){
@@ -29,28 +35,37 @@ string readPipe(int fd, int size, int bufferSize){
         }
         temp = buff;
     }
-    return temp;
+    delete[] buff;
+    return stoi(temp);
 }
 
-string readPipe(int fd, int size, int bufferSize, char buffs[]){
-    char buff[bufferSize];
-    string temp ="";
+string readPipe(int fd, int size, int bufferSize){
+    // char* buff = new char[bufferSize];
+    string temp;
     if(bufferSize < size){
-        int index;
-        strcpy(buff, buffs);
-        temp = temp + buff;
-        index = bufferSize;
-        while(index < size){
+        int index=0;
+        while(index <= size){
+            // memset(buff, '\0', bufferSize);
+            char buff[bufferSize];
             if(read(fd, buff, bufferSize) < 0){
                 //error
             }
-            temp = temp + buff;
+            int p=bufferSize;
+            if(index + bufferSize > size){
+                p=size-index;
+            }
+            for(int k=0;k<p;k++){
+                temp = temp + buff[k];
+            }
             index = index + bufferSize;
         }
     }else{
-        strcpy(buff, buffs);
+        char buff[bufferSize];
+        if(read(fd, buff, bufferSize) < 0){
+            //error
+        }
         temp = buff;
     }
-    // cout << "test: " << temp << endl;
+    // delete[] buff;
     return temp;
 }

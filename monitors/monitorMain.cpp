@@ -35,18 +35,14 @@ int main(int argc, const char** argv) {
         cout << "Error" << endl;
     }
 
-    char buff[bufferSize];
-    int bloomSize = stoi(readPipe(readfd, int(sizeof(int)), bufferSize));
-    int numOfCountries =stoi(readPipe(readfd, int(sizeof(int)), bufferSize));
+    int bloomSize = readPipeInt(readfd, bufferSize);
+    
+    int numOfCountries = readPipeInt(readfd, bufferSize);
+    cout << getpid() << ": bloom: " << bloomSize << ", numofcountries: " << numOfCountries << endl;
+
     string dirs[numOfCountries];
     for(int i=0;i<numOfCountries;i++){
-        if(read(readfd, buff, bufferSize) < 0){
-                cout << "error" << endl;
-        }
-        if(strcmp(buff, "DirDone") == 0){
-            break;
-        }
-        int tempSize = stoi(readPipe(readfd, int(sizeof(int)), bufferSize, buff));
+        int tempSize = readPipeInt(readfd, bufferSize);
         dirs[i] = readPipe(readfd, tempSize, bufferSize);
     }
 
@@ -74,20 +70,20 @@ int main(int argc, const char** argv) {
                 cout << "error record open" << endl;
             }
             string line;
+
             while(getline(records, line)){
-                // cout << line << endl;
                 main_list->insertRecord(line, false);
             }
             records.close();
         }
         closedir(curr_dir);
     }
-    // main_list->vaccineStatusBloom(6854, "Paralytic-Shellfish-Poisoning");
-    // cout << "ending" << endl;
+    main_list->vaccineStatusBloom(2345, "Ebola-Hemorrhagic-Fever");
+    cout << "ending" << endl;
 
     cout << getpid() << ": " << main_list->getCountViruses() << endl;
     string* temp_blooms = main_list->getBlooms();
-    
+
 
     delete main_list;
     close(readfd);
@@ -98,6 +94,5 @@ int main(int argc, const char** argv) {
     if(unlink(argv[1]) <0){
         cout << "cant unling" << endl;
     }
-    // cout << "bye" << endl;
     return 0;
 }

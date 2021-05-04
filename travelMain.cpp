@@ -113,18 +113,11 @@ int main(int argc, const char** argv) {
         }
     }
     for(int i=0;i<activeMonitors;i++){
-        char buff[bufferSize];
-        writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(bloomSize));
-        writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i])));
-        for(int j=0;j<sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]);j++){
-            int index;
-            writePipe(writefds[i], int(sizeof(int)), bufferSize, to_string(sizeof(toGiveDirs[i][j])));
-            // continue;
-            writePipe(writefds[i], int(sizeof(toGiveDirs[i][j])), bufferSize, toGiveDirs[i][j]);
-        }
-        strncpy(buff, "DirDone", bufferSize);
-        if(write(writefds[i], buff, bufferSize) != bufferSize){
-            //error
+        writePipeInt(writefds[i], bufferSize, bloomSize);
+        writePipeInt(writefds[i], bufferSize, int(sizeof(toGiveDirs[i]))/int(sizeof(*toGiveDirs[i])));
+        for(int j=0;j<int(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]));j++){
+            writePipeInt(writefds[i], bufferSize, toGiveDirs[i][j].length());
+            writePipe(writefds[i], bufferSize, toGiveDirs[i][j]);
         }
     }
 
