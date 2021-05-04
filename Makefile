@@ -1,7 +1,7 @@
 FLAGS = -std=c++11 -Wall -g -o
-SOURCE = travelMain.cpp sList.cpp funcs.cpp
+SOURCE = travelMain.cpp sList.cpp funcs.cpp fromProjectOne/Structures/virusesList.cpp fromProjectOne/Structures/skipList.cpp fromProjectOne/Structures/bloomFilter.cpp fromProjectOne/classes.cpp
 ITEM = travelMonitor
-SOURCE2 = monitors/monitorMain.cpp monitors/funcs.cpp fromProjectOne/Structures/skipList.cpp fromProjectOne/Structures/bloomFilter.cpp fromProjectOne/classes.cpp fromProjectOne/generalList.cpp fromProjectOne/Structures/countryList.cpp fromProjectOne/Structures/virusesList.cpp
+SOURCE2 = monitors/monitorMain.cpp funcs.cpp fromProjectOne/Structures/skipList.cpp fromProjectOne/Structures/bloomFilter.cpp fromProjectOne/classes.cpp fromProjectOne/generalList.cpp fromProjectOne/Structures/countryList.cpp fromProjectOne/Structures/virusesList.cpp
 ITEM2 = monitor
 
 compile : $(SOURCE)

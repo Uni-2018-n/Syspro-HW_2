@@ -13,22 +13,6 @@ len(l){
   }
 }
 
-bloomFilter::bloomFilter(string i){
-  int pos = 0;
-  if((pos = i.find('\\')) == -1){
-    //error
-  }
-  string curr_s = i.substr(0, pos);
-  len= stoi(curr_s);
-  i.erase(0, pos+'\\');
-  char curr[i.length()+1];
-  strcpy(curr, i.c_str());
-  array = new char[len]();
-  for(int i=0;i<len;i++){
-    array[i] = curr[i];
-  }
-}
-
 bloomFilter::~bloomFilter(){
   delete[] array;
 }
@@ -43,6 +27,12 @@ void bloomFilter::insert(int s){
     array[array_index] |= 1 << bit_index;// store it
   }
   delete[] s_char;
+}
+
+void bloomFilter::insert(string k){
+  for(int i=0;i<len;i++){
+    array[i] = array[i] || k[i];
+  }
 }
 
 bool bloomFilter::is_inside(int s){
@@ -63,9 +53,8 @@ bool bloomFilter::is_inside(int s){
 
 string bloomFilter::toString(){
   string temp = "";
-  temp = to_string(len) + '\\';
   for(int i=0;i<len;i++){
-    temp = temp + to_string(array[i]);
+    temp = temp + array[i];
   }
   return temp;
 }

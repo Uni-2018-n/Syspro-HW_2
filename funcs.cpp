@@ -1,18 +1,73 @@
 #include "funcs.hpp"
-
-#include <cstdlib>
-#include <fcntl.h>
-#include <iostream>
 #include <cstring>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
-#include <sys/stat.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
+#include <sys/errno.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 #include <unistd.h>
-using namespace std;
+
+int readPipeInt(int fd, int bufferSize){
+    char* buff = new char[bufferSize];
+    string temp="";
+    if(bufferSize < int(sizeof(int))){
+        int index =0;
+        while(index <= int(sizeof(int))){
+            memset(buff, 0, bufferSize);
+            if(read(fd, buff, bufferSize) < 0){
+                perror("error readPipeInt");
+            }
+            if(strcmp(buff, "") == 0){
+                break;
+            }
+            for(int k=0;k<bufferSize;k++){
+                temp = temp + buff[k];
+            }
+            index += bufferSize;
+        }
+    }else{
+        if(read(fd, buff, bufferSize) < 0){
+            perror("error readPipeint");
+        }
+        temp = buff;
+    }
+    delete[] buff;
+    return stoi(temp);
+}
+
+string readPipe(int fd, int size, int bufferSize){
+    string temp;
+    if(bufferSize < size){
+        int index=0;
+        while(index <= size){
+            char buff[bufferSize];
+            if(read(fd, buff, bufferSize) < 0){
+                cout << "error readPipe" << endl;
+            }
+            int p=bufferSize;
+            if(index + bufferSize > size){
+                p=size-index;
+            }
+            for(int k=0;k<p;k++){
+                temp = temp + buff[k];
+            }
+            index = index + bufferSize;
+        }
+    }else{
+        char buff[bufferSize];
+        if(read(fd, buff, bufferSize) < 0){
+            cout << "error readPipe" << endl;
+        }
+        temp = buff;
+    }
+    return temp;
+}
+
+
 void writePipeInt(int fd, int bufferSize, int t){
     string txt = to_string(t);
     char* buff = new char[bufferSize];
@@ -28,13 +83,13 @@ void writePipeInt(int fd, int bufferSize, int t){
             memset(buff, '\0', bufferSize);
             strncpy(buff, txt.c_str()+index, bufferSize);
             if(write(fd, buff, bufferSize) != bufferSize){
-                    //error
+                cout << "error writePipeInt" << endl;
             }
             index = index+ bufferSize;
         }
     }else{
         if(write(fd, txt.c_str(), bufferSize) != bufferSize){
-            //error
+            cout << "error writePipeInt" << endl;
         }
     }
     delete[] buff;
@@ -47,14 +102,13 @@ void writePipe(int fd, int bufferSize, string txt){
         string test = "";
         while(index <= size){
             if(write(fd, txt.c_str()+index, bufferSize) != bufferSize){
-                //
+                cout << "error writePipe" << endl;
             }
-            // cout << txt.c_str()+index << endl;
             index = index + bufferSize;
         }
     }else{
         if(write(fd, txt.c_str(), bufferSize) != bufferSize){
-            //error
+            cout << "error writePipe" << endl;
         }
     }
 }

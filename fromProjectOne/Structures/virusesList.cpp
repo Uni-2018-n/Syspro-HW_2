@@ -96,6 +96,10 @@ void VirlistNode::insertRecord(int* id, citizenRecord* c, string v, string dv, b
   }
 }
 
+void VirlistNode::insertBloom(string n){
+  bloom->insert(n);
+}
+
 VirlistHeader::VirlistHeader(int i):
 bloom_len(i){
   start = NULL;
@@ -116,10 +120,12 @@ VirlistHeader::~VirlistHeader(){
 string* VirlistHeader::getBlooms(){
   VirlistNode* temp = start;
   string* curr = new string[vir_count];
+  
   int i=0;
   while(temp != NULL){
-    curr[i] = temp->getItem() + '\\' + temp->getBloom()->toString();
+    curr[i] = temp->getItem() + '!' + temp->getBloom()->toString();
     i++;
+    temp = temp->getNext();
   }
   return curr;
 }

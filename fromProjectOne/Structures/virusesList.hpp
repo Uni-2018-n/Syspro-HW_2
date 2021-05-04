@@ -27,6 +27,7 @@ public:
   void setNext(VirlistNode* n);
 
   void insertRecord(int* id, citizenRecord* c, string v, string dv, bool flag);
+  void insertBloom(string n);
 };
 
 class VirlistHeader{

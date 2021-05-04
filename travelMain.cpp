@@ -9,10 +9,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
+#include "fromProjectOne/Structures/virusesList.hpp"
 #include "funcs.hpp"
 #include "sList.hpp"
+#include "fromProjectOne/Structures/bloomFilter.hpp"
 
 using namespace std;
 
@@ -101,7 +104,7 @@ int main(int argc, const char** argv) {
             monitorPids[i]=pid;
         }
 
-        if((readfds[i] = open(read_temp.c_str(), O_RDONLY | O_NONBLOCK)) < 0){
+        if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
             cout << "Error cant open read" << endl;
         }
         if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
@@ -121,6 +124,29 @@ int main(int argc, const char** argv) {
         }
     }
 
+    VirlistHeader viruses(bloomSize);
+    for(int i=0;i<activeMonitors;i++){
+        int tempSize= readPipeInt(readfds[i], bufferSize);
+        string tempBlooms[tempSize];
+        for(int j=0;j<tempSize;j++){
+            int ts = readPipeInt(readfds[i], bufferSize);
+            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+            writePipeInt(writefds[i], bufferSize, 0);
+        }
+        for(int j=0;j<tempSize;j++){
+            int k=tempBlooms[j].find("!");
+            VirlistNode* curr;
+            if((curr = viruses.searchVirus(tempBlooms[j].substr(0, k))) == NULL){
+                curr = viruses.insertVirus(tempBlooms[j].substr(0,k));
+            }
+            tempBlooms[j].erase(0,k);
+            curr->insertBloom(tempBlooms[j]);
+        }
+    }
+
+    cout << viruses.searchVirus("Ebola-Hemorrhagic-Fever")->getBloom()->is_inside(2345) << endl;
+
+
     delete[] pathToDirs;
     closedir(inputDir);
     for(int i=0;i<numMonitors;i++){
@@ -128,6 +154,11 @@ int main(int argc, const char** argv) {
         close(writefds[i]);
     }
     
-    // cout << "parent byee" << endl;
+    int status;
+    pid_t pid;
+    for(int i=0;i<numMonitors;i++){
+        pid = wait(&status);
+        cout << "child " << (long)pid << " got exited " << status << endl;
+    }
     return 0;
 }

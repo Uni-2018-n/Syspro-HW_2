@@ -15,7 +15,7 @@
 
 #include <dirent.h>
 
-#include "funcs.hpp"
+#include "../funcs.hpp"
 #include "../fromProjectOne/generalList.hpp"
 #include "../fromProjectOne/Structures/bloomFilter.hpp"
 
@@ -78,11 +78,16 @@ int main(int argc, const char** argv) {
         }
         closedir(curr_dir);
     }
-    main_list->vaccineStatusBloom(2345, "Ebola-Hemorrhagic-Fever");
-    cout << "ending" << endl;
-
-    cout << getpid() << ": " << main_list->getCountViruses() << endl;
     string* temp_blooms = main_list->getBlooms();
+    writePipeInt(writefd, bufferSize, main_list->getCountViruses());
+    for(int i=0;i<main_list->getCountViruses();i++){
+        writePipeInt(writefd, bufferSize, temp_blooms[i].length());
+        writePipe(writefd, bufferSize, temp_blooms[i]);
+        int t = readPipeInt(readfd, bufferSize);
+        if(t != 0){
+            cout << "ERROR" << endl;
+        }
+    }
 
 
     delete main_list;
