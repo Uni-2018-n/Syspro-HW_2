@@ -1,11 +1,12 @@
+#include <csignal>
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <string>
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/errno.h>
@@ -15,13 +16,30 @@
 
 #include <dirent.h>
 
+#include <signal.h>
+
 #include "../funcs.hpp"
 #include "../fromProjectOne/generalList.hpp"
 #include "../fromProjectOne/Structures/bloomFilter.hpp"
+// #include "signalHandlers.hpp"
+#include "commands.hpp"
 
 using namespace std;
+int action=0;
+
+void handlerCatch(int signo);
 
 int main(int argc, const char** argv) {
+    action = -1;
+    static struct sigaction act;
+
+    act.sa_handler = handlerCatch;
+    sigfillset(&(act.sa_mask));
+    sigaction(SIGINT, &act, NULL);
+    sigaction(SIGQUIT, &act, NULL);
+    // signal(SIGINT, );
+    // signal(SIGQUIT, );
+    // signal(SIGUSR1, );
     int readfd, writefd;
     if((writefd = open(argv[0], O_WRONLY)) < 0){
         cout << "error" << endl;
@@ -89,7 +107,32 @@ int main(int argc, const char** argv) {
         }
     }
 
+    //send ready to parent
+    cout << getpid() << ": " << "Ready for commands" << endl;
 
+    int totalRequests=0;
+    int acceptedRequests=0;
+    int rejectedRequests=0;
+
+    while(true){
+        switch(action){
+            case 1:
+                generateLogFile(numOfCountries, dirs, totalRequests, acceptedRequests, rejectedRequests);
+                action = 0;
+                break;
+            case 2:
+                //function for SIGUSR1
+                break;
+            // case 1:
+            // break;
+            default:
+                int currFunc= readPipeInt(readfd, bufferSize);
+
+                break;
+        }
+    }
+
+    cout << getpid() << "exiting..." << endl;
     delete main_list;
     close(readfd);
     close(writefd);
@@ -100,4 +143,12 @@ int main(int argc, const char** argv) {
         cout << "cant unling" << endl;
     }
     return 0;
+}
+
+
+
+void handlerCatch(int signo){
+    if(signo == SIGINT || signo == SIGQUIT){
+        action = 1;
+    }
 }

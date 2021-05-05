@@ -10,7 +10,6 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
-
 int readPipeInt(int fd, int bufferSize){
     char* buff = new char[bufferSize];
     string temp="";
@@ -19,6 +18,9 @@ int readPipeInt(int fd, int bufferSize){
         while(index <= int(sizeof(int))){
             memset(buff, 0, bufferSize);
             if(read(fd, buff, bufferSize) < 0){
+                if(action != 0){
+                    return -1;
+                }
                 perror("error readPipeInt");
             }
             if(strcmp(buff, "") == 0){
@@ -31,6 +33,9 @@ int readPipeInt(int fd, int bufferSize){
         }
     }else{
         if(read(fd, buff, bufferSize) < 0){
+            if(action != 0){
+                return -1;
+            }
             perror("error readPipeint");
         }
         temp = buff;
@@ -46,6 +51,9 @@ string readPipe(int fd, int size, int bufferSize){
         while(index <= size){
             char buff[bufferSize];
             if(read(fd, buff, bufferSize) < 0){
+                if(action != 0){
+                    return "";
+                }
                 cout << "error readPipe" << endl;
             }
             int p=bufferSize;
@@ -60,6 +68,9 @@ string readPipe(int fd, int size, int bufferSize){
     }else{
         char buff[bufferSize];
         if(read(fd, buff, bufferSize) < 0){
+            if(action != 0){
+                return "";
+            }
             cout << "error readPipe" << endl;
         }
         temp = buff;
@@ -83,12 +94,18 @@ void writePipeInt(int fd, int bufferSize, int t){
             memset(buff, '\0', bufferSize);
             strncpy(buff, txt.c_str()+index, bufferSize);
             if(write(fd, buff, bufferSize) != bufferSize){
+                if(action != 0){
+                    return;
+                }
                 cout << "error writePipeInt" << endl;
             }
             index = index+ bufferSize;
         }
     }else{
         if(write(fd, txt.c_str(), bufferSize) != bufferSize){
+            if(action != 0){
+                return;
+            }
             cout << "error writePipeInt" << endl;
         }
     }
@@ -102,12 +119,18 @@ void writePipe(int fd, int bufferSize, string txt){
         string test = "";
         while(index <= size){
             if(write(fd, txt.c_str()+index, bufferSize) != bufferSize){
+                if(action != 0){
+                    return;
+                }
                 cout << "error writePipe" << endl;
             }
             index = index + bufferSize;
         }
     }else{
         if(write(fd, txt.c_str(), bufferSize) != bufferSize){
+            if(action != 0){
+                return;
+            }
             cout << "error writePipe" << endl;
         }
     }

@@ -4,6 +4,7 @@
 #include <iostream>
 
 using namespace std;
+extern int action;
 
 int readPipeInt(int fd, int bufferSize);
 string readPipe(int fd, int size, int bufferSize);

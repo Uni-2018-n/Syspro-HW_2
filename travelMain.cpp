@@ -1,16 +1,20 @@
-#include <cstdlib>
-#include <fcntl.h>
 #include <iostream>
-#include <cstring>
-#include <stdio.h>
+#include <cstdlib>
 #include <stdlib.h>
+#include <stdio.h>
+#include <cstring>
 #include <string>
+
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <dirent.h>
+
+#include <signal.h>
 
 #include "fromProjectOne/Structures/virusesList.hpp"
 #include "funcs.hpp"
@@ -18,7 +22,7 @@
 #include "fromProjectOne/Structures/bloomFilter.hpp"
 
 using namespace std;
-
+int action=0;
 #define PERMS 0666
 
 int main(int argc, const char** argv) {
@@ -145,20 +149,61 @@ int main(int argc, const char** argv) {
     }
 
     cout << viruses.searchVirus("Ebola-Hemorrhagic-Fever")->getBloom()->is_inside(2345) << endl;
+    cout << "Parent ready for commands" << endl;
+
+    cout <<
+    "/travelRequest citizenID date countryFrom countryTo virusName" << endl <<
+    "/travelStats virusName date1 date2 [country]" << endl <<
+    "/addVaccinationRecords country" << endl <<
+    "/searchVaccinationStatus citizenID" << endl <<
+    "/exit" << endl << endl;
 
 
-    delete[] pathToDirs;
-    closedir(inputDir);
-    for(int i=0;i<numMonitors;i++){
-        close(readfds[i]);
-        close(writefds[i]);
+    while(true){//simple switch-case but for strings
+        string command;
+        cin >> command;
+        if(command == "/exit"){
+            delete[] pathToDirs;
+            closedir(inputDir);
+            for(int i=0;i<numMonitors;i++){
+                close(readfds[i]);
+                close(writefds[i]);
+            }
+            
+            int status;
+            pid_t pid;
+            for(int i=0;i<numMonitors;i++){
+                pid = wait(&status);
+                cout << "child " << (long)pid << " got exited " << status << endl;
+            }
+            return 0;
+        }
+        cin.get();
+        string line;
+        getline(cin, line);
+        string temp[8];//convert the readed string to a string array for more simplicity
+        int i=0;
+        string word = "";
+        for(auto x : line){
+            if( x== ' '){
+                temp[i] = word;
+                i++;
+                word ="";
+            }else{
+                word = word + x;
+            }
+        }
+        temp[i] = word;
+        i++;
+        if(command == "/travelRequest"){
+            cout << "Done!" << endl;
+        }else if(command == "/travelStats"){
+            cout << "Done!" << endl;
+        }else if(command == "/addVaccinationRecords"){
+            cout << "Done!" << endl;
+        }else if(command == "/searchVaccinationStatus"){
+            cout << "Done!" << endl;
+        }
+        cout << endl;
     }
-    
-    int status;
-    pid_t pid;
-    for(int i=0;i<numMonitors;i++){
-        pid = wait(&status);
-        cout << "child " << (long)pid << " got exited " << status << endl;
-    }
-    return 0;
 }
