@@ -18,6 +18,7 @@
 
 #include "fromProjectOne/Structures/virusesList.hpp"
 #include "funcs.hpp"
+#include "parentCommands.hpp"
 #include "sList.hpp"
 #include "fromProjectOne/Structures/bloomFilter.hpp"
 
@@ -68,7 +69,11 @@ int main(int argc, const char** argv) {
         activeMonitors = numMonitors;
     }
     string curr = countryList.popFirst();
-    string toGiveDirs[activeMonitors][int(countryList.count/activeMonitors)+1];
+    // string** toGiveDirs[activeMonitors][int(countryList.count/activeMonitors)+1];
+    string** toGiveDirs = new string*[activeMonitors];
+    for(int i=0;i<activeMonitors;i++){
+        toGiveDirs[i] = new string[int(countryList.count/activeMonitors)+1];
+    }
     int i=0;
     int j=0;
     while(strcmp(curr.c_str(), "") != 0){
@@ -121,8 +126,8 @@ int main(int argc, const char** argv) {
     }
     for(int i=0;i<activeMonitors;i++){
         writePipeInt(writefds[i], bufferSize, bloomSize);
-        writePipeInt(writefds[i], bufferSize, int(sizeof(toGiveDirs[i]))/int(sizeof(*toGiveDirs[i])));
-        for(int j=0;j<int(sizeof(toGiveDirs[i])/sizeof(*toGiveDirs[i]));j++){
+        writePipeInt(writefds[i], bufferSize, int(countryList.count/activeMonitors)+1);
+        for(int j=0;j<int(countryList.count/activeMonitors)+1;j++){
             writePipeInt(writefds[i], bufferSize, toGiveDirs[i][j].length());
             writePipe(writefds[i], bufferSize, toGiveDirs[i][j]);
         }
@@ -148,7 +153,7 @@ int main(int argc, const char** argv) {
         }
     }
 
-    cout << viruses.searchVirus("Ebola-Hemorrhagic-Fever")->getBloom()->is_inside(2345) << endl;
+    cout << viruses.searchVirus("Chancroid")->getBloom()->is_inside(6056) << endl;
     cout << "Parent ready for commands" << endl;
 
     cout <<
@@ -163,6 +168,10 @@ int main(int argc, const char** argv) {
         string command;
         cin >> command;
         if(command == "/exit"){
+            for(int i=0;i<int(countryList.count/activeMonitors)+1;i++){
+                delete[] toGiveDirs[i];
+            }
+            delete[] toGiveDirs;
             delete[] pathToDirs;
             closedir(inputDir);
             for(int i=0;i<numMonitors;i++){
@@ -195,11 +204,15 @@ int main(int argc, const char** argv) {
         }
         temp[i] = word;
         i++;
+        command = "/addVaccinationRecords";
         if(command == "/travelRequest"){
             cout << "Done!" << endl;
         }else if(command == "/travelStats"){
             cout << "Done!" << endl;
         }else if(command == "/addVaccinationRecords"){
+            temp[0] = "Afghanistan";
+            addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], viruses);
+            // cout << viruses.searchVirus("Chancroid")->getBloom()->is_inside(6056) << endl;
             cout << "Done!" << endl;
         }else if(command == "/searchVaccinationStatus"){
             cout << "Done!" << endl;

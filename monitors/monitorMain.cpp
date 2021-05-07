@@ -37,9 +37,7 @@ int main(int argc, const char** argv) {
     sigfillset(&(act.sa_mask));
     sigaction(SIGINT, &act, NULL);
     sigaction(SIGQUIT, &act, NULL);
-    // signal(SIGINT, );
-    // signal(SIGQUIT, );
-    // signal(SIGUSR1, );
+    sigaction(SIGUSR1, &act, NULL);
     int readfd, writefd;
     if((writefd = open(argv[0], O_WRONLY)) < 0){
         cout << "error" << endl;
@@ -69,7 +67,7 @@ int main(int argc, const char** argv) {
     // }
 
     GlistHeader* main_list = new GlistHeader(bloomSize);
-    
+    int countFilesOfDirs[numOfCountries];
     for(int i=0;i<numOfCountries;i++){
         if(strcmp(dirs[i].c_str(), "") == 0){
             continue;
@@ -78,6 +76,7 @@ int main(int argc, const char** argv) {
         if((curr_dir = opendir(("input_dir/"+dirs[i]+'/').c_str()))== NULL){
             cout << "error" << endl;
         }
+        int count=0;
         struct dirent *dirent;
         while((dirent=readdir(curr_dir)) != NULL){
             if(strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..")==0){
@@ -93,7 +92,9 @@ int main(int argc, const char** argv) {
                 main_list->insertRecord(line, false);
             }
             records.close();
+            count++;
         }
+        countFilesOfDirs[i]=count;
         closedir(curr_dir);
     }
     string* temp_blooms = main_list->getBlooms();
@@ -107,13 +108,16 @@ int main(int argc, const char** argv) {
         }
     }
 
+    cout << getpid() << ": ";
+    main_list->vaccineStatus(6056, "Chancroid");
+
+
     //send ready to parent
     cout << getpid() << ": " << "Ready for commands" << endl;
 
     int totalRequests=0;
     int acceptedRequests=0;
     int rejectedRequests=0;
-
     while(true){
         switch(action){
             case 1:
@@ -121,10 +125,23 @@ int main(int argc, const char** argv) {
                 action = 0;
                 break;
             case 2:
-                //function for SIGUSR1
+                appendData(numOfCountries, dirs, countFilesOfDirs, main_list);
+
+                cout << "outside " << getpid() << ": ";
+                main_list->vaccineStatus(6065, "Chancroid");
+
+                temp_blooms = main_list->getBlooms();
+                writePipeInt(writefd, bufferSize, main_list->getCountViruses());
+                for(int i=0;i<main_list->getCountViruses();i++){
+                    writePipeInt(writefd, bufferSize, temp_blooms[i].length());
+                    writePipe(writefd, bufferSize, temp_blooms[i]);
+                    int t = readPipeInt(readfd, bufferSize);
+                    if(t != 0){
+                        cout << "ERROR" << endl;
+                    }
+                }
+                action = 0;
                 break;
-            // case 1:
-            // break;
             default:
                 int currFunc= readPipeInt(readfd, bufferSize);
 
@@ -150,5 +167,7 @@ int main(int argc, const char** argv) {
 void handlerCatch(int signo){
     if(signo == SIGINT || signo == SIGQUIT){
         action = 1;
+    }else if(signo == SIGUSR1){
+        action = 2;
     }
 }
