@@ -132,7 +132,6 @@ int main(int argc, const char** argv) {
             writePipe(writefds[i], bufferSize, toGiveDirs[i][j]);
         }
     }
-
     VirlistHeader viruses(bloomSize);
     for(int i=0;i<activeMonitors;i++){
         int tempSize= readPipeInt(readfds[i], bufferSize);
@@ -148,12 +147,11 @@ int main(int argc, const char** argv) {
             if((curr = viruses.searchVirus(tempBlooms[j].substr(0, k))) == NULL){
                 curr = viruses.insertVirus(tempBlooms[j].substr(0,k));
             }
-            tempBlooms[j].erase(0,k);
+            tempBlooms[j].erase(0,k+1);
             curr->insertBloom(tempBlooms[j]);
         }
     }
 
-    cout << viruses.searchVirus("Chancroid")->getBloom()->is_inside(6056) << endl;
     cout << "Parent ready for commands" << endl;
 
     cout <<
@@ -168,22 +166,17 @@ int main(int argc, const char** argv) {
         string command;
         cin >> command;
         if(command == "/exit"){
-            for(int i=0;i<int(countryList.count/activeMonitors)+1;i++){
-                delete[] toGiveDirs[i];
-            }
             delete[] toGiveDirs;
             delete[] pathToDirs;
             closedir(inputDir);
-            for(int i=0;i<numMonitors;i++){
-                close(readfds[i]);
-                close(writefds[i]);
-            }
-            
             int status;
             pid_t pid;
             for(int i=0;i<numMonitors;i++){
-                pid = wait(&status);
+                kill(monitorPids[i], SIGKILL);
+                pid = waitpid(monitorPids[i], &status, 0);
                 cout << "child " << (long)pid << " got exited " << status << endl;
+                close(readfds[i]);
+                close(writefds[i]);
             }
             return 0;
         }
@@ -204,15 +197,12 @@ int main(int argc, const char** argv) {
         }
         temp[i] = word;
         i++;
-        command = "/addVaccinationRecords";
         if(command == "/travelRequest"){
             cout << "Done!" << endl;
         }else if(command == "/travelStats"){
             cout << "Done!" << endl;
         }else if(command == "/addVaccinationRecords"){
-            temp[0] = "Afghanistan";
-            addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], viruses);
-            // cout << viruses.searchVirus("Chancroid")->getBloom()->is_inside(6056) << endl;
+            addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], &viruses);
             cout << "Done!" << endl;
         }else if(command == "/searchVaccinationStatus"){
             cout << "Done!" << endl;

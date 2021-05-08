@@ -1,6 +1,10 @@
 #include "generalList.hpp"
 #include "Structures/virusesList.hpp"
+#include <cstring>
+#include <dirent.h>
+#include <fstream>
 #include <string>
+#include <unistd.h>
 
 ////////////////////////////listNode
 listNode::listNode(citizenRecord* c){

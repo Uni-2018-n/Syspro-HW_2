@@ -31,7 +31,7 @@ void bloomFilter::insert(int s){
 
 void bloomFilter::insert(string k){
   for(int i=0;i<len;i++){
-    array[i] = array[i] || k[i];
+    array[i] = array[i] | k[i];
   }
 }
 

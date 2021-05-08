@@ -51,6 +51,4 @@ void appendData(int numofcountries, string countries[], int* fileCounts, GlistHe
         }
         closedir(curr_dir);
     }
-    cout << getpid() << ": ";
-    main_list->vaccineStatus(6056, "Chancroid");
 }

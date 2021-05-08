@@ -21,7 +21,6 @@
 #include "../funcs.hpp"
 #include "../fromProjectOne/generalList.hpp"
 #include "../fromProjectOne/Structures/bloomFilter.hpp"
-// #include "signalHandlers.hpp"
 #include "commands.hpp"
 
 using namespace std;
@@ -61,10 +60,6 @@ int main(int argc, const char** argv) {
         int tempSize = readPipeInt(readfd, bufferSize);
         dirs[i] = readPipe(readfd, tempSize, bufferSize);
     }
-
-    // for(int i=0;i<numOfCountries;i++){
-    //     cout << getpid() << ": " << dirs[i] << endl;
-    // }
 
     GlistHeader* main_list = new GlistHeader(bloomSize);
     int countFilesOfDirs[numOfCountries];
@@ -108,12 +103,7 @@ int main(int argc, const char** argv) {
         }
     }
 
-    cout << getpid() << ": ";
-    main_list->vaccineStatus(6056, "Chancroid");
-
-
-    //send ready to parent
-    cout << getpid() << ": " << "Ready for commands" << endl;
+    cout << getpid() << ": " << "Ready for commands" << endl; //TODO: send ready to parent
 
     int totalRequests=0;
     int acceptedRequests=0;
@@ -127,9 +117,6 @@ int main(int argc, const char** argv) {
             case 2:
                 appendData(numOfCountries, dirs, countFilesOfDirs, main_list);
 
-                cout << "outside " << getpid() << ": ";
-                main_list->vaccineStatus(6065, "Chancroid");
-
                 temp_blooms = main_list->getBlooms();
                 writePipeInt(writefd, bufferSize, main_list->getCountViruses());
                 for(int i=0;i<main_list->getCountViruses();i++){
@@ -142,27 +129,24 @@ int main(int argc, const char** argv) {
                 }
                 action = 0;
                 break;
+            case 3:
+                cout << getpid() << ": exiting..." << endl;
+                delete main_list;
+                close(readfd);
+                close(writefd);
+                if(unlink(argv[0]) <0){
+                    cout << "cant unlink" << endl;
+                }
+                if(unlink(argv[1]) <0){
+                    cout << "cant unling" << endl;
+                }
+                return 0;
             default:
                 int currFunc= readPipeInt(readfd, bufferSize);
-
                 break;
         }
     }
-
-    cout << getpid() << "exiting..." << endl;
-    delete main_list;
-    close(readfd);
-    close(writefd);
-    if(unlink(argv[0]) <0){
-        cout << "cant unlink" << endl;
-    }
-    if(unlink(argv[1]) <0){
-        cout << "cant unling" << endl;
-    }
-    return 0;
 }
-
-
 
 void handlerCatch(int signo){
     if(signo == SIGINT || signo == SIGQUIT){

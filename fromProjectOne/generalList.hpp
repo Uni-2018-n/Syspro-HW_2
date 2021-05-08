@@ -36,6 +36,7 @@ public:
   string* getBlooms();
   int getCountViruses();
 
+
   void vaccineStatusBloom(int i, string v);
   void vaccineStatus(int i, string v);
   void vaccineStatus(int i);

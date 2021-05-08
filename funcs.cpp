@@ -41,6 +41,9 @@ int readPipeInt(int fd, int bufferSize){
         temp = buff;
     }
     delete[] buff;
+    if(temp.length() == 0){
+        return -1;
+    }
     return stoi(temp);
 }
 

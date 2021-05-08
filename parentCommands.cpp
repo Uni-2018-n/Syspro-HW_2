@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], string country, VirlistHeader viruses){
+void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], string country, VirlistHeader* viruses){
     int flag=0;
     for(int i=0;i<activeMonitors;i++){
         for(int j=0;j<dirCount;j++){
@@ -18,16 +18,17 @@ void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int ac
                 string tempBlooms[tempSize];
                 for(int j=0;j<tempSize;j++){
                     int ts = readPipeInt(readfds[i], bufferSize);
+                    // cout << ts << endl;
                     tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
                     writePipeInt(writefds[i], bufferSize, 0);
                 }
                 for(int j=0;j<tempSize;j++){
                     int k=tempBlooms[j].find("!");
                     VirlistNode* curr;
-                    if((curr = viruses.searchVirus(tempBlooms[j].substr(0, k))) == NULL){
-                        curr = viruses.insertVirus(tempBlooms[j].substr(0,k));
+                    if((curr = viruses->searchVirus(tempBlooms[j].substr(0, k))) == NULL){
+                        curr = viruses->insertVirus(tempBlooms[j].substr(0,k));
                     }
-                    tempBlooms[j].erase(0,k);
+                    tempBlooms[j].erase(0,k+1);
                     curr->insertBloom(tempBlooms[j]);
                 }
                 flag = 1;
