@@ -22,6 +22,26 @@ public:
   void print();
 };
 
+class SRListNode{
+  public:
+    string vir;
+    int vacced;
+    string date;
+    SRListNode* next;
+    SRListNode(string v, int vacc, string d, SRListNode* n);
+};
+
+class SRListHeader{
+    SRListNode* start;
+  public:
+    int len;
+    citizenRecord* citizen;
+    SRListHeader();
+    ~SRListHeader();
+    void insert(string vir, int vacced, string date);
+    SRListNode* pop();
+};
+
 string flipDate(string t);
 string checkAndFormatDate(string t);
 #endif

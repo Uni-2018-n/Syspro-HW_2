@@ -174,8 +174,7 @@ void VirlistHeader::vaccineStatusBloom(int i, string v){//simple method for chec
 void VirlistHeader::vaccineStatus(int i, string v){
   VirlistNode* temp = this->searchVirus(v);
   if(temp == NULL){
-    cout << "Virus not found" << endl;
-    return;
+      cout << "Virus not found" << endl;
   }else{
     SkiplistNode* t = temp->getVacced()->searchItem(i);
     if(t != NULL){
@@ -183,6 +182,28 @@ void VirlistHeader::vaccineStatus(int i, string v){
       return;
     }
     cout << "NOT VACCINATED" << endl;
+  }
+}
+
+string VirlistHeader::vaccineStatus(int i, string v, bool prints){
+  VirlistNode* temp = this->searchVirus(v);
+  if(temp == NULL){
+    if(prints){
+      cout << "Virus not found" << endl;
+    }
+    return "";
+  }else{
+    SkiplistNode* t = temp->getVacced()->searchItem(i);
+    if(t != NULL){
+      if(prints){
+        cout << "VACCINATED ON " << flipDate(t->getDateVaccinated()) << endl;
+      }
+      return t->getDateVaccinated();
+    }
+    if(prints){
+      cout << "NOT VACCINATED" << endl;
+    }
+    return "";
   }
 }
 
@@ -199,6 +220,39 @@ void VirlistHeader::vaccineStatus(int i){
     }
     temp = temp->getNext();
   }
+}
+
+SRListHeader* VirlistHeader::vaccineStatus(int i, bool prints){//TODO could this be better?
+  VirlistNode* temp = start;
+  int count =0;
+  while(temp != NULL){
+    SkiplistNode* t = temp->getVacced()->searchItem(i);
+    if(t != NULL){
+      count++;
+    }else{
+      if(temp->getNotVacced()->searchItem(i)){
+        count++;
+      }
+    }
+    temp = temp->getNext();
+  }
+  SRListHeader* toReturn= new SRListHeader();
+  temp = start;
+  int j=0;
+  while(temp != NULL){
+    SkiplistNode* t = temp->getVacced()->searchItem(i);
+    if(t != NULL){
+      toReturn->insert(temp->getItem(), 1, t->getDateVaccinated());
+    }else{
+      if(temp->getNotVacced()->searchItem(i)){
+        toReturn->insert(temp->getItem(), 0, "");
+
+      }
+    }
+    temp = temp->getNext();
+    j++;
+  }
+  return toReturn;
 }
 
 bool VirlistHeader::vaccinateNow(int i, string v){

@@ -21,6 +21,41 @@ void citizenRecord::print(){
   age << endl;
 }
 
+////////////////////
+SRListNode::SRListNode(string v, int vacc, string d, SRListNode* n){
+  vir = v;
+  vacced = vacc;
+  date = d;
+  next = n;
+}
+
+////////////////////
+SRListHeader::SRListHeader(){
+  start = NULL;
+  len = 0;
+}
+SRListHeader::~SRListHeader(){
+  SRListNode* temp= start;
+  while(temp != NULL){
+    SRListNode* t= temp;
+    start = temp->next;
+    delete t;
+  }
+}
+void SRListHeader::insert(string vir, int vacced, string date){
+  start = new SRListNode(vir, vacced, date, start);
+  len++;
+}
+
+SRListNode* SRListHeader::pop(){
+  if(start == NULL){
+    return NULL;
+  }
+  SRListNode* temp= start;
+  start = temp->next;
+  return temp;
+}
+
 string flipDate(string t){//used to flip the date incase we need to print a date in normal form
     string new_date= "";
     new_date=t.substr(0, t.find('-'))+new_date;

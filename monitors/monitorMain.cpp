@@ -22,6 +22,7 @@
 #include "../fromProjectOne/generalList.hpp"
 #include "../fromProjectOne/Structures/bloomFilter.hpp"
 #include "commands.hpp"
+#include "../protocol.hpp"
 
 using namespace std;
 int action=0;
@@ -143,6 +144,9 @@ int main(int argc, const char** argv) {
                 return 0;
             default:
                 int currFunc= readPipeInt(readfd, bufferSize);
+                if(currFunc != -1){
+                    handlFunctionMonitor(readfd, writefd, bufferSize, currFunc, main_list);
+                }
                 break;
         }
     }

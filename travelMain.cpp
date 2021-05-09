@@ -1,3 +1,4 @@
+#include <csignal>
 #include <iostream>
 #include <cstdlib>
 #include <stdlib.h>
@@ -26,7 +27,15 @@ using namespace std;
 int action=0;
 #define PERMS 0666
 
+void handlerCatch(int signo);
+
 int main(int argc, const char** argv) {
+    static struct sigaction act;
+    act.sa_handler = handlerCatch;
+    sigfillset(&(act.sa_mask));
+    sigaction(SIGINT, &act, NULL);
+    sigaction(SIGQUIT, &act, NULL);
+    sigaction(SIGCHLD, &act, NULL);
     int numMonitors, bloomSize, bufferSize;
     char* pathToDirs;
     if(argc != 9){
@@ -69,7 +78,6 @@ int main(int argc, const char** argv) {
         activeMonitors = numMonitors;
     }
     string curr = countryList.popFirst();
-    // string** toGiveDirs[activeMonitors][int(countryList.count/activeMonitors)+1];
     string** toGiveDirs = new string*[activeMonitors];
     for(int i=0;i<activeMonitors;i++){
         toGiveDirs[i] = new string[int(countryList.count/activeMonitors)+1];
@@ -198,6 +206,7 @@ int main(int argc, const char** argv) {
         temp[i] = word;
         i++;
         if(command == "/travelRequest"){
+            travelRequest(&viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
             cout << "Done!" << endl;
         }else if(command == "/travelStats"){
             cout << "Done!" << endl;
@@ -205,8 +214,17 @@ int main(int argc, const char** argv) {
             addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], &viruses);
             cout << "Done!" << endl;
         }else if(command == "/searchVaccinationStatus"){
+            searchVaccinationStatus(readfds, writefds, bufferSize, activeMonitors, monitorPids, stoi(temp[0]));
             cout << "Done!" << endl;
         }
         cout << endl;
+    }
+}
+
+void handlerCatch(int signo){
+    if(signo == SIGINT || signo == SIGQUIT){
+        action = 1;
+    }else if(signo == SIGCHLD){
+        action = 2;
     }
 }

@@ -1,5 +1,6 @@
 #include "generalList.hpp"
 #include "Structures/virusesList.hpp"
+#include "classes.hpp"
 #include <cstring>
 #include <dirent.h>
 #include <fstream>
@@ -142,12 +143,23 @@ void GlistHeader::vaccineStatusBloom(int i, string v){
   viruses->vaccineStatusBloom(i,v);
 }
 
+string GlistHeader::vaccineStatus(int i, string v, bool prints){
+  return viruses->vaccineStatus(i, v, prints);
+}
+
 void GlistHeader::vaccineStatus(int i, string v){
   viruses->vaccineStatus(i, v);
 }
 
 void GlistHeader::vaccineStatus(int i){
   viruses->vaccineStatus(i);
+}
+
+SRListHeader* GlistHeader::vaccineStatus(int i, bool prints){
+  SRListHeader* temp = viruses->vaccineStatus(i, prints);
+  listNode* citizen = this->searchCitizen(i);
+  temp->citizen = citizen->getCitizen();
+  return temp;
 }
 
 void GlistHeader::insertCitizenRecord(string line){

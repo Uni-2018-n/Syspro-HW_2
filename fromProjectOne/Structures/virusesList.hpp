@@ -1,6 +1,7 @@
 #ifndef _VIRUSESLIST_HPP_
 #define _VIRUSESLIST_HPP_
 #include <iostream>
+#include <string>
 
 #include "bloomFilter.hpp"
 #include "skipList.hpp"
@@ -46,7 +47,9 @@ public:
   VirlistNode* searchVirus(string);
   void vaccineStatusBloom(int i, string v);
   void vaccineStatus(int i, string v);
+  string vaccineStatus(int i, string v, bool prints);
   void vaccineStatus(int i);
+  SRListHeader* vaccineStatus(int i, bool prints);
   bool vaccinateNow(int i, string v);
   void listNonVaccinatedPersons(string v);
 };

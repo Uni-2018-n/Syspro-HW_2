@@ -38,8 +38,10 @@ public:
 
 
   void vaccineStatusBloom(int i, string v);
+  string vaccineStatus(int i, string v, bool prints);
   void vaccineStatus(int i, string v);
   void vaccineStatus(int i);
+  SRListHeader* vaccineStatus(int i, bool prints);
 
   void vaccinateNow(int i, string fn, string ln, string c, string a, string v);
   void insertCitizenRecord(string line);
