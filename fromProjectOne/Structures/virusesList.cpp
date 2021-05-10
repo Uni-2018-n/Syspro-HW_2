@@ -222,23 +222,9 @@ void VirlistHeader::vaccineStatus(int i){
   }
 }
 
-SRListHeader* VirlistHeader::vaccineStatus(int i, bool prints){//TODO could this be better?
-  VirlistNode* temp = start;
-  int count =0;
-  while(temp != NULL){
-    SkiplistNode* t = temp->getVacced()->searchItem(i);
-    if(t != NULL){
-      count++;
-    }else{
-      if(temp->getNotVacced()->searchItem(i)){
-        count++;
-      }
-    }
-    temp = temp->getNext();
-  }
+SRListHeader* VirlistHeader::vaccineStatus(int i, bool prints){
   SRListHeader* toReturn= new SRListHeader();
-  temp = start;
-  int j=0;
+  VirlistNode* temp = start;
   while(temp != NULL){
     SkiplistNode* t = temp->getVacced()->searchItem(i);
     if(t != NULL){
@@ -246,11 +232,9 @@ SRListHeader* VirlistHeader::vaccineStatus(int i, bool prints){//TODO could this
     }else{
       if(temp->getNotVacced()->searchItem(i)){
         toReturn->insert(temp->getItem(), 0, "");
-
       }
     }
     temp = temp->getNext();
-    j++;
   }
   return toReturn;
 }

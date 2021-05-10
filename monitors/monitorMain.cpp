@@ -145,7 +145,14 @@ int main(int argc, const char** argv) {
             default:
                 int currFunc= readPipeInt(readfd, bufferSize);
                 if(currFunc != -1){
-                    handlFunctionMonitor(readfd, writefd, bufferSize, currFunc, main_list);
+                    int t = handlFunctionMonitor(readfd, writefd, bufferSize, currFunc, main_list);
+                    if(t == 1){
+                        acceptedRequests++;
+                        totalRequests++;
+                    }else if(t == 0){
+                        rejectedRequests++;
+                        totalRequests++;
+                    }
                 }
                 break;
         }

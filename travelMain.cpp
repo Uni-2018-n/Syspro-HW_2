@@ -162,6 +162,10 @@ int main(int argc, const char** argv) {
 
     cout << "Parent ready for commands" << endl;
 
+    int total=0;
+    int rejected=0;
+    int accepted=0;
+
     cout <<
     "/travelRequest citizenID date countryFrom countryTo virusName" << endl <<
     "/travelStats virusName date1 date2 [country]" << endl <<
@@ -206,7 +210,16 @@ int main(int argc, const char** argv) {
         temp[i] = word;
         i++;
         if(command == "/travelRequest"){
-            travelRequest(&viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
+            int t = travelRequest(&viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
+            if(t == 1){
+                accepted++;
+            }else if(t == 0){
+                rejected++;
+            }else{
+                cout << "ERROR - TRAVEL REQUEST" << endl;
+                continue;
+            }
+            total++;
             cout << "Done!" << endl;
         }else if(command == "/travelStats"){
             cout << "Done!" << endl;

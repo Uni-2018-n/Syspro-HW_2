@@ -1,6 +1,7 @@
 #include <csignal>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include "fromProjectOne/Structures/virusesList.hpp"
@@ -37,9 +38,10 @@ void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int ac
     }
 }
 
-void travelRequest(VirlistHeader* viruses, int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], int citizenID, string date, string countryFrom, string countryTo, string virusName){
+int travelRequest(VirlistHeader* viruses, int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], int citizenID, string date, string countryFrom, string countryTo, string virusName){
     if(viruses->searchVirus(virusName)->getBloom()->is_inside(citizenID) == 0){
         cout << "REQUEST REJECTED - YOU ARE NOT VACCINATED" << endl;
+        return 0;
     }else{
         for(int i=0;i<activeMonitors;i++){
             for(int j=0;j<dirCount;j++){
@@ -52,17 +54,33 @@ void travelRequest(VirlistHeader* viruses, int readfds[], int writefds[], int bu
                     if(vacced == 1){
                         int tempSize = readPipeInt(readfds[i], bufferSize);
                         string dateV = readPipe(readfds[i], tempSize, bufferSize);
-                        //see if date vacced is in range 
-                        //cout messege
-                        //TODO: return 0 or 1 for counters
+                        int yearV, monthV, dayV;
+                        int yearT, monthT, dayT;
+                        char dash;
+                        stringstream temp(dateV + "-" + date);
+                        temp >> yearV >> dash >> monthV >> dash >> dayV >> dash
+                             >> yearT >> dash >> monthT >> dash >> dayT;
+
+                        if(((yearT - yearV)*12 + monthT - monthV) <= 6){
+                            cout << "REQUEST ACCEPTED - HAPPY TRAVELS" << endl;
+                            writePipeInt(writefds[i], bufferSize, 1);
+                            return 1;
+                        }else if(((yearT - yearV)*12 + monthT - monthV) > 6){
+                            cout << "REQUEST REJECTED - YOU WILL NEED ANOTHER VACCINATION BEFORE TRAVEL DATE" << endl;
+                            writePipeInt(writefds[i], bufferSize, 0);
+                            return 0;
+                        }
                     }else{
                         cout << "REQUEST REJECTED - YOU ARE NOT VACCINATED" << endl;
+                        writePipeInt(writefds[i], bufferSize, 0);
+                        return 0;
                     }
-                    return;
                 }
             }
         }
     }
+    cout << "ERROR - TRAVEL REQUEST" << endl;
+    return -1;
 }
 
 void searchVaccinationStatus(int readfds[], int writefds[], int bufferSize, int activeMonitors, int monitorPids[], int citizenID){

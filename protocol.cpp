@@ -4,19 +4,14 @@
 #include "funcs.hpp"
 #include <string>
 
-void handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc, GlistHeader* main_list){
-    int tempSize;
-    int id;
-    string vir;
-    string temp;
-    SRListHeader* returnedViruses;
-    SRListNode* poped;
+int handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc, GlistHeader* main_list){
     switch(currFunc){
-        case 101:
-            id = readPipeInt(readfd, bufferSize);
-            tempSize = readPipeInt(readfd, bufferSize);
-            vir = readPipe(readfd, tempSize, bufferSize);
-            temp = main_list->vaccineStatus(id, vir, false);
+        case 101:{ //brackets because cpp dosent like creating variables inside cases
+            //reads a last int from parent indicating if the request was accepted or requested 
+            int id = readPipeInt(readfd, bufferSize);
+            int tempSize = readPipeInt(readfd, bufferSize);
+            string vir = readPipe(readfd, tempSize, bufferSize);
+            string temp = main_list->vaccineStatus(id, vir, false);
             if(temp.length() != 0){
                 writePipeInt(writefd, bufferSize, 1);
                 writePipeInt(writefd, bufferSize, temp.length());
@@ -24,10 +19,11 @@ void handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc,
             }else{
                 writePipeInt(writefd, bufferSize, 0);
             }
-            return;
-        case 104:
-            id = readPipeInt(readfd, bufferSize);
-            returnedViruses = main_list->vaccineStatus(id, true);
+            return readPipeInt(readfd, bufferSize);
+        }
+        case 104:{
+            int id = readPipeInt(readfd, bufferSize);
+            SRListHeader* returnedViruses = main_list->vaccineStatus(id, true);
             if(returnedViruses->len > 0){
                 writePipeInt(writefd, bufferSize, 1);
                 string temp = to_string(*(returnedViruses->citizen->citizenId)) + " " + returnedViruses->citizen->firstName + " " + returnedViruses->citizen->lastName + " " + returnedViruses->citizen->getCountry();
@@ -36,7 +32,7 @@ void handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc,
                 writePipeInt(writefd, bufferSize, returnedViruses->citizen->getAge());
                 writePipeInt(writefd, bufferSize, returnedViruses->len);
                 for(int i=0;i<returnedViruses->len;i++){
-                    poped = returnedViruses->pop();
+                    SRListNode* poped = returnedViruses->pop();
                     writePipeInt(writefd, bufferSize, poped->vir.length());
                     writePipe(writefd, bufferSize, poped->vir);
                     writePipeInt(writefd, bufferSize, poped->vacced);
@@ -44,13 +40,14 @@ void handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc,
                         writePipeInt(writefd, bufferSize, poped->date.length());
                         writePipe(writefd, bufferSize, poped->date);
                     }
+                    delete poped;
                 }
             }else{
                 writePipeInt(writefd, bufferSize, 0);
             }
             delete returnedViruses;
-            return;
-        default:
-        break;
+            return -1;
+        }
     }
+    return -1;
 }
