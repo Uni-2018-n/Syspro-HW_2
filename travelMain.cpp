@@ -173,65 +173,125 @@ int main(int argc, const char** argv) {
     "/searchVaccinationStatus citizenID" << endl <<
     "/exit" << endl << endl;
 
-
-    while(true){//simple switch-case but for strings
-        string command;
-        cin >> command;
-        if(command == "/exit"){
-            delete[] toGiveDirs;
-            delete[] pathToDirs;
-            closedir(inputDir);
-            int status;
-            pid_t pid;
-            for(int i=0;i<numMonitors;i++){
-                kill(monitorPids[i], SIGKILL);
-                pid = waitpid(monitorPids[i], &status, 0);
-                cout << "child " << (long)pid << " got exited " << status << endl;
+    while(true){
+        switch(action){
+            case 1:{
+                action =0;
+                delete[] toGiveDirs;
+                delete[] pathToDirs;
+                closedir(inputDir);
+                int status;
+                pid_t pid;
+                for(int i=0;i<numMonitors;i++){
+                    kill(monitorPids[i], SIGKILL);
+                    pid = waitpid(monitorPids[i], &status, 0);
+                    cout << "child " << (long)pid << " got exited " << status << endl;
+                    close(readfds[i]);
+                    close(writefds[i]);
+                }
+                generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, total, accepted, rejected);
+                return 0;
+            }
+            case 2:{
+                int status;
+                pid_t pid;
+                pid = wait(&status);
                 close(readfds[i]);
                 close(writefds[i]);
+                for(int i=0;i<activeMonitors;i++){
+                    if(monitorPids[i] == pid){
+                        string read_temp = "/tmp/fifoR." + to_string(i);
+                        string write_temp = "/tmp/fifoW." + to_string(i);
+                        if((mkfifo(read_temp.c_str(), PERMS)) <0){
+                            cout << "Error cant create read" << endl;
+                        }
+                        if((mkfifo(write_temp.c_str(), PERMS)) <0){
+                            cout << "Error cant create write" << endl;
+                        }
+                        switch(pid=fork()){
+                        case -1:
+                            cout << "Error fork" << endl;
+                            break;
+                        case 0:
+                            execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);
+                            cout << "Error execlp" << endl;
+                            break;
+                        default:
+                            monitorPids[i]=pid;
+                            if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
+                                cout << "Error cant open read" << endl;
+                            }
+                            if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
+                                cout << "Error cant open write" << endl;
+                            }
+                        }
+                        break;
+                    }
+                }
             }
-            generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, total, accepted, rejected);
-            return 0;
+            action =0;
+            break;
+            default:
+                while(true){//simple switch-case but for strings
+                    string command;
+                    cin >> command;
+                    if(command == "/exit"){
+                        delete[] toGiveDirs;
+                        delete[] pathToDirs;
+                        closedir(inputDir);
+                        int status;
+                        pid_t pid;
+                        for(int i=0;i<numMonitors;i++){
+                            kill(monitorPids[i], SIGKILL);
+                            pid = waitpid(monitorPids[i], &status, 0);
+                            cout << "child " << (long)pid << " got exited " << status << endl;
+                            close(readfds[i]);
+                            close(writefds[i]);
+                        }
+                        generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, total, accepted, rejected);
+                        return 0;
+                    }
+                    cin.get();
+                    string line;
+                    getline(cin, line);
+                    string temp[8];//convert the readed string to a string array for more simplicity
+                    int i=0;
+                    string word = "";
+                    for(auto x : line){
+                        if( x== ' '){
+                            temp[i] = word;
+                            i++;
+                            word ="";
+                        }else{
+                            word = word + x;
+                        }
+                    }
+                    temp[i] = word;
+                    i++;
+                    if(command == "/travelRequest"){
+                        int t = travelRequest(&viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
+                        if(t == 1){
+                            accepted++;
+                        }else if(t == 0){
+                            rejected++;
+                        }else{
+                            cout << "ERROR - TRAVEL REQUEST" << endl;
+                            continue;
+                        }
+                        total++;
+                        cout << "Done!" << endl;
+                    }else if(command == "/travelStats"){
+                        cout << "Done!" << endl;
+                    }else if(command == "/addVaccinationRecords"){
+                        addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], &viruses);
+                        cout << "Done!" << endl;
+                    }else if(command == "/searchVaccinationStatus"){
+                        searchVaccinationStatus(readfds, writefds, bufferSize, activeMonitors, monitorPids, stoi(temp[0]));
+                        cout << "Done!" << endl;
+                    }
+                    cout << endl;
+                }
         }
-        cin.get();
-        string line;
-        getline(cin, line);
-        string temp[8];//convert the readed string to a string array for more simplicity
-        int i=0;
-        string word = "";
-        for(auto x : line){
-            if( x== ' '){
-                temp[i] = word;
-                i++;
-                word ="";
-            }else{
-                word = word + x;
-            }
-        }
-        temp[i] = word;
-        i++;
-        if(command == "/travelRequest"){
-            int t = travelRequest(&viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
-            if(t == 1){
-                accepted++;
-            }else if(t == 0){
-                rejected++;
-            }else{
-                cout << "ERROR - TRAVEL REQUEST" << endl;
-                continue;
-            }
-            total++;
-            cout << "Done!" << endl;
-        }else if(command == "/travelStats"){
-            cout << "Done!" << endl;
-        }else if(command == "/addVaccinationRecords"){
-            addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], &viruses);
-            cout << "Done!" << endl;
-        }else if(command == "/searchVaccinationStatus"){
-            searchVaccinationStatus(readfds, writefds, bufferSize, activeMonitors, monitorPids, stoi(temp[0]));
-            cout << "Done!" << endl;
-        }
-        cout << endl;
     }
 }
 
