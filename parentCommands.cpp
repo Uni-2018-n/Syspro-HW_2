@@ -1,8 +1,10 @@
 #include <csignal>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 
 #include "fromProjectOne/Structures/virusesList.hpp"
 #include "parentCommands.hpp"
@@ -110,4 +112,22 @@ void searchVaccinationStatus(int readfds[], int writefds[], int bufferSize, int 
         }
     }
 
+}
+
+void generateLogFileParent(int activeMonitors, int numOfCountries, string** countries, int total, int accepted, int rejected){
+    ofstream file;
+    file.open("log_file."+to_string(getpid()), fstream::out | fstream::trunc);
+    if(file.fail()){
+        cout << "failed to create file" << endl;
+        return;
+    }
+    for(int i=0;i<activeMonitors;i++){
+        for(int j=0;j<numOfCountries;j++){
+            file << countries[i][j] << endl;
+        }
+    }
+    file << "TOTAL TRAVEL REQUESTS " << total << endl;
+    file << "ACCEPTED " << accepted << endl;
+    file << "REJECTED " << rejected << endl;
+    file.close();
 }

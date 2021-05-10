@@ -6,6 +6,7 @@ ITEM2 = monitor
 
 compile : $(SOURCE)
 	rm -rf /tmp/fifo*
+	rm -rf log_file.*
 	g++ $(FLAGS) $(ITEM) $(SOURCE)
 	g++ $(FLAGS) $(ITEM2) $(SOURCE2)
 

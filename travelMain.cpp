@@ -190,6 +190,7 @@ int main(int argc, const char** argv) {
                 close(readfds[i]);
                 close(writefds[i]);
             }
+            generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, total, accepted, rejected);
             return 0;
         }
         cin.get();
