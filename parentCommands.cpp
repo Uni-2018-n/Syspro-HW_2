@@ -40,10 +40,11 @@ void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int ac
     }
 }
 
-int travelRequest(VirlistHeader* viruses, int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], int citizenID, string date, string countryFrom, string countryTo, string virusName){
+void travelRequest(TSHeader* stats, VirlistHeader* viruses, int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], int citizenID, string date, string countryFrom, string countryTo, string virusName){
     if(viruses->searchVirus(virusName)->getBloom()->is_inside(citizenID) == 0){
         cout << "REQUEST REJECTED - YOU ARE NOT VACCINATED" << endl;
-        return 0;
+        stats->insert(0, countryFrom, date);
+        return;
     }else{
         for(int i=0;i<activeMonitors;i++){
             for(int j=0;j<dirCount;j++){
@@ -66,24 +67,29 @@ int travelRequest(VirlistHeader* viruses, int readfds[], int writefds[], int buf
                         if(((yearT - yearV)*12 + monthT - monthV) <= 6){
                             cout << "REQUEST ACCEPTED - HAPPY TRAVELS" << endl;
                             writePipeInt(writefds[i], bufferSize, 1);
-                            return 1;
+                            stats->insert(1, countryFrom, date);
+                            return;
                         }else if(((yearT - yearV)*12 + monthT - monthV) > 6){
                             cout << "REQUEST REJECTED - YOU WILL NEED ANOTHER VACCINATION BEFORE TRAVEL DATE" << endl;
                             writePipeInt(writefds[i], bufferSize, 0);
-                            return 0;
+                            stats->insert(0, countryFrom, date);
+                            return;
                         }
                     }else{
                         cout << "REQUEST REJECTED - YOU ARE NOT VACCINATED" << endl;
                         writePipeInt(writefds[i], bufferSize, 0);
-                        return 0;
+                        stats->insert(0, countryFrom, date);
+                        return;
                     }
                 }
             }
         }
     }
     cout << "ERROR - TRAVEL REQUEST" << endl;
-    return -1;
+    return;
 }
+
+
 
 void searchVaccinationStatus(int readfds[], int writefds[], int bufferSize, int activeMonitors, int monitorPids[], int citizenID){
     for(int i=0;i<activeMonitors;i++){

@@ -22,6 +22,7 @@
 #include "parentCommands.hpp"
 #include "sList.hpp"
 #include "fromProjectOne/Structures/bloomFilter.hpp"
+#include "travelStatsList.hpp"
 
 using namespace std;
 int action=0;
@@ -162,9 +163,7 @@ int main(int argc, const char** argv) {
 
     cout << "Parent ready for commands" << endl;
 
-    int total=0;
-    int rejected=0;
-    int accepted=0;
+    TSHeader stats;
 
     cout <<
     "/travelRequest citizenID date countryFrom countryTo virusName" << endl <<
@@ -189,7 +188,7 @@ int main(int argc, const char** argv) {
                     close(readfds[i]);
                     close(writefds[i]);
                 }
-                generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, total, accepted, rejected);
+                generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
                 return 0;
             }
             case 2:{
@@ -248,7 +247,7 @@ int main(int argc, const char** argv) {
                             close(readfds[i]);
                             close(writefds[i]);
                         }
-                        generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, total, accepted, rejected);
+                        generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
                         return 0;
                     }
                     cin.get();
@@ -269,18 +268,14 @@ int main(int argc, const char** argv) {
                     temp[i] = word;
                     i++;
                     if(command == "/travelRequest"){
-                        int t = travelRequest(&viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
-                        if(t == 1){
-                            accepted++;
-                        }else if(t == 0){
-                            rejected++;
-                        }else{
-                            cout << "ERROR - TRAVEL REQUEST" << endl;
-                            continue;
-                        }
-                        total++;
+                        travelRequest(&stats, &viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
                         cout << "Done!" << endl;
                     }else if(command == "/travelStats"){
+                        if(i==3){
+                            stats.getStats(temp[0], temp[1], temp[2], temp[3]);
+                        }else{
+                            stats.getStats(temp[0], temp[1], temp[2]);
+                        }
                         cout << "Done!" << endl;
                     }else if(command == "/addVaccinationRecords"){
                         addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], &viruses);
