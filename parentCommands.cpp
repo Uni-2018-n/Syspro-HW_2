@@ -129,6 +129,7 @@ void generateLogFileParent(int activeMonitors, int numOfCountries, string** coun
     }
     for(int i=0;i<activeMonitors;i++){
         for(int j=0;j<numOfCountries;j++){
+            // cout << countries[i][j] << endl;
             file << countries[i][j] << endl;
         }
     }

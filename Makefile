@@ -1,5 +1,5 @@
 FLAGS = -std=c++11 -Wall -g -o
-SOURCE = travelMain.cpp sList.cpp funcs.cpp fromProjectOne/Structures/virusesList.cpp fromProjectOne/Structures/skipList.cpp fromProjectOne/Structures/bloomFilter.cpp fromProjectOne/classes.cpp parentCommands.cpp
+SOURCE = travelMain.cpp sList.cpp funcs.cpp fromProjectOne/Structures/virusesList.cpp fromProjectOne/Structures/skipList.cpp fromProjectOne/Structures/bloomFilter.cpp fromProjectOne/classes.cpp parentCommands.cpp travelStatsList.cpp
 ITEM = travelMonitor
 SOURCE2 = monitors/monitorMain.cpp funcs.cpp fromProjectOne/Structures/skipList.cpp fromProjectOne/Structures/bloomFilter.cpp fromProjectOne/classes.cpp fromProjectOne/generalList.cpp fromProjectOne/Structures/countryList.cpp fromProjectOne/Structures/virusesList.cpp monitors/commands.cpp protocol.cpp
 ITEM2 = monitor

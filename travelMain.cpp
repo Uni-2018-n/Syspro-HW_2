@@ -161,7 +161,7 @@ int main(int argc, const char** argv) {
         }
     }
 
-    cout << "Parent ready for commands" << endl;
+    cout << getpid() << ": Parent ready for commands" << endl;
 
     TSHeader stats;
 
@@ -176,7 +176,6 @@ int main(int argc, const char** argv) {
         switch(action){
             case 1:{
                 action =0;
-                delete[] toGiveDirs;
                 delete[] pathToDirs;
                 closedir(inputDir);
                 int status;
@@ -187,8 +186,15 @@ int main(int argc, const char** argv) {
                     cout << "child " << (long)pid << " got exited " << status << endl;
                     close(readfds[i]);
                     close(writefds[i]);
+                    if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
+                        cout << "cant unlink" << endl;
+                    }
+                    if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
+                        cout << "cant unlink" << endl;
+                    }
                 }
                 generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
+                delete[] toGiveDirs;
                 return 0;
             }
             case 2:{
@@ -234,8 +240,10 @@ int main(int argc, const char** argv) {
                 while(true){//simple switch-case but for strings
                     string command;
                     cin >> command;
+                    if(action != 0){ // if we wait for input and get signal this cin fail and user havent input anything yet so instantly go to specific action
+                        break;
+                    }
                     if(command == "/exit"){
-                        delete[] toGiveDirs;
                         delete[] pathToDirs;
                         closedir(inputDir);
                         int status;
@@ -243,16 +251,23 @@ int main(int argc, const char** argv) {
                         for(int i=0;i<numMonitors;i++){
                             kill(monitorPids[i], SIGKILL);
                             pid = waitpid(monitorPids[i], &status, 0);
-                            cout << "child " << (long)pid << " got exited " << status << endl;
+                            cout << "child " << (long)pid << " got exited " << status << endl;           
                             close(readfds[i]);
                             close(writefds[i]);
+                            if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
+                                cout << "cant unlink" << endl;
+                            }
+                            if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
+                                cout << "cant unlink" << endl;
+                            }
                         }
                         generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
+                        delete[] toGiveDirs;
                         return 0;
                     }
                     cin.get();
                     string line;
-                    getline(cin, line);
+                    getline(cin, line);//here we need to finish the command and then do the action
                     string temp[8];//convert the readed string to a string array for more simplicity
                     int i=0;
                     string word = "";
@@ -285,6 +300,10 @@ int main(int argc, const char** argv) {
                         cout << "Done!" << endl;
                     }
                     cout << endl;
+
+                    if(action != 0){//after command is done do action
+                        break;
+                    }
                 }
         }
     }
