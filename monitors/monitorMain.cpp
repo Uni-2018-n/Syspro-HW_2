@@ -31,6 +31,7 @@ void handlerCatch(int signo);
 
 int main(int argc, const char** argv) {
     action = -1;
+    cout << getpid() << ": im new child" << endl;
     static struct sigaction act;
 
     act.sa_handler = handlerCatch;
@@ -56,9 +57,12 @@ int main(int argc, const char** argv) {
     int numOfCountries = readPipeInt(readfd, bufferSize);
     cout << getpid() << ": bloom: " << bloomSize << ", numofcountries: " << numOfCountries << endl;
 
+    int tempSize = readPipeInt(readfd, bufferSize);
+    string pathToDirs = readPipe(readfd, tempSize, bufferSize);
+
     string dirs[numOfCountries];
     for(int i=0;i<numOfCountries;i++){
-        int tempSize = readPipeInt(readfd, bufferSize);
+        tempSize = readPipeInt(readfd, bufferSize);
         dirs[i] = readPipe(readfd, tempSize, bufferSize);
     }
 
@@ -69,7 +73,7 @@ int main(int argc, const char** argv) {
             continue;
         }
         DIR *curr_dir;
-        if((curr_dir = opendir(("input_dir/"+dirs[i]+'/').c_str()))== NULL){
+        if((curr_dir = opendir((pathToDirs + '/' + dirs[i] + '/').c_str()))== NULL){
             cout << "error" << endl;
         }
         int count=0;

@@ -103,7 +103,7 @@ int main(int argc, const char** argv) {
         string read_temp = "/tmp/fifoR." + to_string(i);
         string write_temp = "/tmp/fifoW."+ to_string(i);
         if((mkfifo(read_temp.c_str(), PERMS)) <0){
-            cout << "Error cant create read" << endl;
+            cout << getpid() << ": Error cant create read" << endl;
         }
         if((mkfifo(write_temp.c_str(), PERMS)) <0){
             cout << "Error cant create write" << endl;
@@ -136,6 +136,9 @@ int main(int argc, const char** argv) {
     for(int i=0;i<activeMonitors;i++){
         writePipeInt(writefds[i], bufferSize, bloomSize);
         writePipeInt(writefds[i], bufferSize, int(countryList.count/activeMonitors)+1);
+        string tempPath = pathToDirs;
+        writePipeInt(writefds[i], bufferSize, tempPath.length());
+        writePipe(writefds[i], bufferSize, tempPath);
         for(int j=0;j<int(countryList.count/activeMonitors)+1;j++){
             writePipeInt(writefds[i], bufferSize, toGiveDirs[i][j].length());
             writePipe(writefds[i], bufferSize, toGiveDirs[i][j]);
@@ -200,6 +203,7 @@ int main(int argc, const char** argv) {
             case 2:{
                 int status;
                 pid_t pid;
+                cout << "Test" << endl;
                 pid = wait(&status);
                 close(readfds[i]);
                 close(writefds[i]);
@@ -208,10 +212,10 @@ int main(int argc, const char** argv) {
                         string read_temp = "/tmp/fifoR." + to_string(i);
                         string write_temp = "/tmp/fifoW." + to_string(i);
                         if((mkfifo(read_temp.c_str(), PERMS)) <0){
-                            cout << "Error cant create read" << endl;
+                            cout << getpid() << ": Error cant create read" << endl;
                         }
                         if((mkfifo(write_temp.c_str(), PERMS)) <0){
-                            cout << "Error cant create write" << endl;
+                            cout << getpid() << ": Error cant create write" << endl;
                         }
                         switch(pid=fork()){
                         case -1:
@@ -313,6 +317,7 @@ void handlerCatch(int signo){
     if(signo == SIGINT || signo == SIGQUIT){
         action = 1;
     }else if(signo == SIGCHLD){
+        cout << "GOT SIGCHLD" << endl;
         action = 2;
     }
 }
