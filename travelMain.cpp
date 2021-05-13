@@ -201,14 +201,20 @@ int main(int argc, const char** argv) {
                 return 0;
             }
             case 2:{
+                action =0;
                 int status;
                 pid_t pid;
-                cout << "Test" << endl;
                 pid = wait(&status);
-                close(readfds[i]);
-                close(writefds[i]);
                 for(int i=0;i<activeMonitors;i++){
                     if(monitorPids[i] == pid){
+                        close(readfds[i]);
+                        close(writefds[i]);
+                        if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
+                            cout << "cant unlink" << endl;
+                        }
+                        if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
+                            cout << "cant unlink" << endl;
+                        }
                         string read_temp = "/tmp/fifoR." + to_string(i);
                         string write_temp = "/tmp/fifoW." + to_string(i);
                         if((mkfifo(read_temp.c_str(), PERMS)) <0){
@@ -234,17 +240,48 @@ int main(int argc, const char** argv) {
                                 cout << "Error cant open write" << endl;
                             }
                         }
+
+                        if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){
+                            //error
+                        }
+                        writePipeInt(writefds[i], bufferSize, bloomSize);
+                        writePipeInt(writefds[i], bufferSize, int(countryList.count/activeMonitors)+1);
+                        string tempPath = pathToDirs;
+                        writePipeInt(writefds[i], bufferSize, tempPath.length());
+                        writePipe(writefds[i], bufferSize, tempPath);
+                        for(int j=0;j<int(countryList.count/activeMonitors)+1;j++){
+                            writePipeInt(writefds[i], bufferSize, toGiveDirs[i][j].length());
+                            writePipe(writefds[i], bufferSize, toGiveDirs[i][j]);
+                        }
+
+                        int tempSize= readPipeInt(readfds[i], bufferSize);
+                        string tempBlooms[tempSize];
+                        for(int j=0;j<tempSize;j++){
+                            int ts = readPipeInt(readfds[i], bufferSize);
+                            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+                            writePipeInt(writefds[i], bufferSize, 0);
+                        }
+                        for(int j=0;j<tempSize;j++){
+                            int k=tempBlooms[j].find("!");
+                            VirlistNode* curr;
+                            if((curr = viruses.searchVirus(tempBlooms[j].substr(0, k))) == NULL){
+                                curr = viruses.insertVirus(tempBlooms[j].substr(0,k));
+                            }
+                            tempBlooms[j].erase(0,k+1);
+                            curr->insertBloom(tempBlooms[j]);
+                        }
                         break;
                     }
                 }
             }
-            action =0;
             break;
             default:
                 while(true){//simple switch-case but for strings
                     string command;
+                    cout << "Waiting for command: ";
                     cin >> command;
-                    if(action != 0){ // if we wait for input and get signal this cin fail and user havent input anything yet so instantly go to specific action
+                    if(cin.fail()){ // if we wait for input and get signal this cin fail and user havent input anything yet so instantly go to specific action
+                        cin.clear();
                         break;
                     }
                     if(command == "/exit"){
@@ -317,7 +354,6 @@ void handlerCatch(int signo){
     if(signo == SIGINT || signo == SIGQUIT){
         action = 1;
     }else if(signo == SIGCHLD){
-        cout << "GOT SIGCHLD" << endl;
         action = 2;
     }
 }

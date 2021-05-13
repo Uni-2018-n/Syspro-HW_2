@@ -55,7 +55,7 @@ int main(int argc, const char** argv) {
     int bloomSize = readPipeInt(readfd, bufferSize);
     
     int numOfCountries = readPipeInt(readfd, bufferSize);
-    cout << getpid() << ": bloom: " << bloomSize << ", numofcountries: " << numOfCountries << endl;
+    // cout << getpid() << ": bloom: " << bloomSize << ", numofcountries: " << numOfCountries << endl;
 
     int tempSize = readPipeInt(readfd, bufferSize);
     string pathToDirs = readPipe(readfd, tempSize, bufferSize);

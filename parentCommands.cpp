@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "fromProjectOne/Structures/virusesList.hpp"
+#include "fromProjectOne/classes.hpp"
 #include "parentCommands.hpp"
 #include "funcs.hpp"
 
@@ -21,7 +22,6 @@ void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int ac
                 string tempBlooms[tempSize];
                 for(int j=0;j<tempSize;j++){
                     int ts = readPipeInt(readfds[i], bufferSize);
-                    // cout << ts << endl;
                     tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
                     writePipeInt(writefds[i], bufferSize, 0);
                 }
@@ -109,9 +109,9 @@ void searchVaccinationStatus(int readfds[], int writefds[], int bufferSize, int 
                 if(vacced){
                     tempSize = readPipeInt(readfds[i], bufferSize);
                     string date = readPipe(readfds[i], tempSize, bufferSize);
-                    cout << vir << "VACCINATED ON " << date << endl;
+                    cout << vir << " VACCINATED ON " << flipDate(date) << endl;
                 }else{
-                    cout << vir << "NOT YET VACCINATED" << endl;
+                    cout << vir << " NOT YET VACCINATED" << endl;
                 }
             }
             return;
@@ -129,7 +129,6 @@ void generateLogFileParent(int activeMonitors, int numOfCountries, string** coun
     }
     for(int i=0;i<activeMonitors;i++){
         for(int j=0;j<numOfCountries;j++){
-            // cout << countries[i][j] << endl;
             file << countries[i][j] << endl;
         }
     }
