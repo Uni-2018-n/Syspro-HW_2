@@ -21,7 +21,7 @@ int readPipeInt(int fd, int bufferSize){
                 if(action != 0){
                     return -1;
                 }
-                perror("error readPipeInt");
+                perror("readPipeInt data read ERROR\n");
             }
             if(strcmp(buff, "") == 0){
                 break;
@@ -36,7 +36,7 @@ int readPipeInt(int fd, int bufferSize){
             if(action != 0){
                 return -1;
             }
-            perror("error readPipeint");
+            perror("readPipeInt Data read ERROR\n");
         }
         temp = buff;
     }
@@ -57,7 +57,7 @@ string readPipe(int fd, int size, int bufferSize){
                 if(action != 0){
                     return "";
                 }
-                cout << "error readPipe" << endl;
+                perror("readPipe data read ERROR\n");
             }
             int p=bufferSize;
             if(index + bufferSize > size){
@@ -74,7 +74,7 @@ string readPipe(int fd, int size, int bufferSize){
             if(action != 0){
                 return "";
             }
-            cout << "error readPipe" << endl;
+            perror("readPipe Data read ERROR\n");
         }
         temp = buff;
     }
@@ -100,7 +100,7 @@ void writePipeInt(int fd, int bufferSize, int t){
                 if(action != 0){
                     return;
                 }
-                cout << "error writePipeInt" << endl;
+                perror("writePipeInt data write ERROR\n");
             }
             index = index+ bufferSize;
         }
@@ -109,7 +109,7 @@ void writePipeInt(int fd, int bufferSize, int t){
             if(action != 0){
                 return;
             }
-            cout << "error writePipeInt" << endl;
+            perror("writePipeInt Data write ERROR\n");
         }
     }
     delete[] buff;
@@ -125,7 +125,7 @@ void writePipe(int fd, int bufferSize, string txt){
                 if(action != 0){
                     return;
                 }
-                cout << "error writePipe" << endl;
+                perror("writePipe data write ERROR\n");
             }
             index = index + bufferSize;
         }
@@ -134,7 +134,7 @@ void writePipe(int fd, int bufferSize, string txt){
             if(action != 0){
                 return;
             }
-            cout << "error writePipe" << endl;
+            perror("writePipe Data write ERROR\n");
         }
     }
 }

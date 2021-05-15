@@ -10,7 +10,7 @@ void generateLogFile(int numOfCountries, string countries[], int total, int acce
     ofstream file;
     file.open("log_file."+to_string(getpid()), fstream::out | fstream::trunc);
     if(file.fail()){
-        cout << "failed to create file" << endl;
+        perror("Child: failed to create log_file\n");
         return;
     }
     for(int i=0;i<numOfCountries;i++){
@@ -26,7 +26,7 @@ void appendData(int numofcountries, string countries[], int* fileCounts, GlistHe
     for(int i=0;i<numofcountries;i++){
         DIR *curr_dir;
         if((curr_dir = opendir(("input_dir/"+countries[i]+'/').c_str()))== NULL){
-            cout << "error" << endl;
+            perror("Child: appendData Cant open dir\n");
         }
         int count=0;
         struct dirent *dirent;
@@ -40,7 +40,7 @@ void appendData(int numofcountries, string countries[], int* fileCounts, GlistHe
             fileCounts[i]++;
             ifstream records("input_dir/"+countries[i]+'/'+countries[i]+'-'+to_string(fileCounts[i]).c_str()+".txt");
             if(records.fail()){
-                cout << "error record open" << endl;
+                perror("Child: appendData file open ERROR\n");
             }
             string line;
 

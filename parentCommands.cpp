@@ -124,7 +124,7 @@ void generateLogFileParent(int activeMonitors, int numOfCountries, string** coun
     ofstream file;
     file.open("log_file."+to_string(getpid()), fstream::out | fstream::trunc);
     if(file.fail()){
-        cout << "failed to create file" << endl;
+        perror("Parent: failed to create log_file\n");
         return;
     }
     for(int i=0;i<activeMonitors;i++){

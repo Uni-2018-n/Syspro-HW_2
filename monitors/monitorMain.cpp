@@ -29,9 +29,7 @@ int action=0;
 
 void handlerCatch(int signo);
 
-int main(int argc, const char** argv) {
-    action = -1;
-    cout << getpid() << ": im new child" << endl;
+int main(int argc, const char** argv) {    
     static struct sigaction act;
 
     act.sa_handler = handlerCatch;
@@ -41,21 +39,20 @@ int main(int argc, const char** argv) {
     sigaction(SIGUSR1, &act, NULL);
     int readfd, writefd;
     if((writefd = open(argv[0], O_WRONLY)) < 0){
-        cout << "error" << endl;
+        perror("Child: Cant open write\n");
     }
     if((readfd = open(argv[1], O_RDONLY)) < 0){
-        cout << "Error" << endl;
+        perror("Child: Cant open read\n");
     }
 
     int bufferSize;
     if(read(readfd, &bufferSize, sizeof(int)) < 0){
-        cout << "Error" << endl;
+        perror("Child: BufferSize data read ERROR\n");
     }
 
     int bloomSize = readPipeInt(readfd, bufferSize);
     
     int numOfCountries = readPipeInt(readfd, bufferSize);
-    // cout << getpid() << ": bloom: " << bloomSize << ", numofcountries: " << numOfCountries << endl;
 
     int tempSize = readPipeInt(readfd, bufferSize);
     string pathToDirs = readPipe(readfd, tempSize, bufferSize);
@@ -74,7 +71,7 @@ int main(int argc, const char** argv) {
         }
         DIR *curr_dir;
         if((curr_dir = opendir((pathToDirs + '/' + dirs[i] + '/').c_str()))== NULL){
-            cout << "error" << endl;
+            perror("Child: Cant open dir\n");
         }
         int count=0;
         struct dirent *dirent;
@@ -84,7 +81,7 @@ int main(int argc, const char** argv) {
             }
             ifstream records("input_dir/"+dirs[i]+"/"+dirent->d_name);
             if(records.fail()){
-                cout << "error record open" << endl;
+                perror("Child: file open ERROR\n");
             }
             string line;
 
@@ -101,14 +98,15 @@ int main(int argc, const char** argv) {
     writePipeInt(writefd, bufferSize, main_list->getCountViruses());
     for(int i=0;i<main_list->getCountViruses();i++){
         writePipeInt(writefd, bufferSize, temp_blooms[i].length());
-        writePipe(writefd, bufferSize, temp_blooms[i]);
         int t = readPipeInt(readfd, bufferSize);
-        if(t != 0){
-            cout << "ERROR" << endl;
+        while(t != 0){
+            writePipeInt(writefd, bufferSize, temp_blooms[i].length());
+            t = readPipeInt(readfd, bufferSize);
         }
+        writePipe(writefd, bufferSize, temp_blooms[i]);
     }
 
-    cout << getpid() << ": " << "Ready for commands" << endl; //TODO: send ready to parent
+    writePipeInt(writefd, bufferSize, 0);
 
     int totalRequests=0;
     int acceptedRequests=0;
@@ -116,34 +114,35 @@ int main(int argc, const char** argv) {
     while(true){
         switch(action){
             case 1:
-                generateLogFile(numOfCountries, dirs, totalRequests, acceptedRequests, rejectedRequests);
                 action = 0;
+                generateLogFile(numOfCountries, dirs, totalRequests, acceptedRequests, rejectedRequests);
                 break;
             case 2:
+                action = 0;
                 appendData(numOfCountries, dirs, countFilesOfDirs, main_list);
-
                 temp_blooms = main_list->getBlooms();
                 writePipeInt(writefd, bufferSize, main_list->getCountViruses());
                 for(int i=0;i<main_list->getCountViruses();i++){
                     writePipeInt(writefd, bufferSize, temp_blooms[i].length());
-                    writePipe(writefd, bufferSize, temp_blooms[i]);
                     int t = readPipeInt(readfd, bufferSize);
-                    if(t != 0){
-                        cout << "ERROR" << endl;
+                    while(t != 0){
+                        writePipeInt(writefd, bufferSize, temp_blooms[i].length());
+                        t = readPipeInt(readfd, bufferSize);
                     }
+                    writePipe(writefd, bufferSize, temp_blooms[i]);
                 }
-                action = 0;
                 break;
             case 3:
                 cout << getpid() << ": exiting..." << endl;
                 delete main_list;
+                delete[] temp_blooms;
                 close(readfd);
                 close(writefd);
                 if(unlink(argv[0]) <0){
-                    cout << "cant unlink" << endl;
+                    perror("Child: action 3 cant unlink Read\n");
                 }
                 if(unlink(argv[1]) <0){
-                    cout << "cant unling" << endl;
+                    perror("Child: action 3 cant unlink Write\n");
                 }
                 return 0;
             default:

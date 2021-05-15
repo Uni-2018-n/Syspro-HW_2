@@ -1,4 +1,5 @@
 #include <csignal>
+#include <cstdio>
 #include <iostream>
 #include <cstdlib>
 #include <stdlib.h>
@@ -59,7 +60,7 @@ int main(int argc, const char** argv) {
     }
     DIR *inputDir;
     if((inputDir = opendir(pathToDirs))== NULL){
-        cout << "Error! Directory can not open!" << endl;
+        perror("Parent: Cant open dir\n");
         return -1;
     }
 
@@ -102,35 +103,36 @@ int main(int argc, const char** argv) {
     for(int i=0;i<activeMonitors;i++){
         string read_temp = "/tmp/fifoR." + to_string(i);
         string write_temp = "/tmp/fifoW."+ to_string(i);
-        if((mkfifo(read_temp.c_str(), PERMS)) <0){
-            cout << getpid() << ": Error cant create read" << endl;
+        if(((mkfifo(read_temp.c_str(), PERMS)) <0) && (errno != EEXIST)){
+            perror("Parent: Cant create read FiFo\n");
         }
-        if((mkfifo(write_temp.c_str(), PERMS)) <0){
-            cout << "Error cant create write" << endl;
+        if(((mkfifo(write_temp.c_str(), PERMS)) <0) &&(errno != EEXIST)){
+            perror("Parent: Cant create write FiFo\n");
         }
 
         pid_t pid;
         switch(pid=fork()){
         case -1:
-            cout << "Error fork" << endl;
+            perror("Parent: Fork ERROR\n");
+            exit(-1);
             break;
         case 0:
             execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);
-            cout << "Error execlp" << endl;
+            perror("Parent: Execlp ERROR\n");
             break;
         default:
             monitorPids[i]=pid;
         }
 
         if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
-            cout << "Error cant open read" << endl;
+            perror("Parent: Cant open read\n");
         }
         if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
-            cout << "Error cant open write" << endl;
+            perror("Parent: Cant open write\n");
         }
         
         if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){
-            //error
+            perror("Parent: BufferSize data write ERROR\n");
         }
     }
     for(int i=0;i<activeMonitors;i++){
@@ -150,8 +152,15 @@ int main(int argc, const char** argv) {
         string tempBlooms[tempSize];
         for(int j=0;j<tempSize;j++){
             int ts = readPipeInt(readfds[i], bufferSize);
-            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+            while(ts == -1){
+                writePipeInt(writefds[i], bufferSize, -1);
+                ts = readPipeInt(readfds[i], bufferSize);
+            }
             writePipeInt(writefds[i], bufferSize, 0);
+            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+        }
+        if(readPipeInt(readfds[i], bufferSize) != 0){
+            exit(-1);
         }
         for(int j=0;j<tempSize;j++){
             int k=tempBlooms[j].find("!");
@@ -163,8 +172,6 @@ int main(int argc, const char** argv) {
             curr->insertBloom(tempBlooms[j]);
         }
     }
-
-    cout << getpid() << ": Parent ready for commands" << endl;
 
     TSHeader stats;
 
@@ -190,13 +197,16 @@ int main(int argc, const char** argv) {
                     close(readfds[i]);
                     close(writefds[i]);
                     if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
-                        cout << "cant unlink" << endl;
+                        perror("Parent: action 1 cant unlink Write\n");
                     }
                     if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
-                        cout << "cant unlink" << endl;
+                        perror("Parent: action 1 cant unlink Read\n");
                     }
                 }
                 generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
+                for(int i=0;i<activeMonitors;i++){
+                    delete[] toGiveDirs[i];
+                }
                 delete[] toGiveDirs;
                 return 0;
             }
@@ -210,39 +220,40 @@ int main(int argc, const char** argv) {
                         close(readfds[i]);
                         close(writefds[i]);
                         if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
-                            cout << "cant unlink" << endl;
+                            perror("Parent: action 2 cant unlink Write\n");
                         }
                         if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
-                            cout << "cant unlink" << endl;
+                            perror("Parent: action 2 cant unlink Read\n");
                         }
                         string read_temp = "/tmp/fifoR." + to_string(i);
                         string write_temp = "/tmp/fifoW." + to_string(i);
                         if((mkfifo(read_temp.c_str(), PERMS)) <0){
-                            cout << getpid() << ": Error cant create read" << endl;
+                            perror("Parent: action 2 cant create Read FiFo\n");
                         }
                         if((mkfifo(write_temp.c_str(), PERMS)) <0){
-                            cout << getpid() << ": Error cant create write" << endl;
+                            perror("Parent: action 2 cant create Write FiFo\n");
                         }
                         switch(pid=fork()){
                         case -1:
-                            cout << "Error fork" << endl;
+                            perror("Parent: Fork ERROR\n");
+                            exit(-1);
                             break;
                         case 0:
                             execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);
-                            cout << "Error execlp" << endl;
+                            perror("Parent: Execlp ERROR\n");
                             break;
                         default:
                             monitorPids[i]=pid;
                             if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
-                                cout << "Error cant open read" << endl;
+                                perror("Parent: Cant open read\n");
                             }
                             if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
-                                cout << "Error cant open write" << endl;
+                                perror("Parent: Cant open write\n");
                             }
                         }
 
                         if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){
-                            //error
+                            perror("Parent: BufferSize data write ERROR\n");
                         }
                         writePipeInt(writefds[i], bufferSize, bloomSize);
                         writePipeInt(writefds[i], bufferSize, int(countryList.count/activeMonitors)+1);
@@ -258,9 +269,18 @@ int main(int argc, const char** argv) {
                         string tempBlooms[tempSize];
                         for(int j=0;j<tempSize;j++){
                             int ts = readPipeInt(readfds[i], bufferSize);
-                            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+                            while(ts == -1){
+                                writePipeInt(writefds[i], bufferSize, -1);
+                                ts = readPipeInt(readfds[i], bufferSize);
+                            }
                             writePipeInt(writefds[i], bufferSize, 0);
+                            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
                         }
+                        
+                        if(readPipeInt(readfds[i], bufferSize) != 0){
+                            exit(-1);
+                        }
+
                         for(int j=0;j<tempSize;j++){
                             int k=tempBlooms[j].find("!");
                             VirlistNode* curr;
@@ -296,13 +316,16 @@ int main(int argc, const char** argv) {
                             close(readfds[i]);
                             close(writefds[i]);
                             if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
-                                cout << "cant unlink" << endl;
+                                perror("Parent: /exit cant unlink Write\n");
                             }
                             if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
-                                cout << "cant unlink" << endl;
+                                perror("Parent: /exit cant unlink Read\n");
                             }
                         }
                         generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
+                        for(int i=0;i<activeMonitors;i++){
+                            delete[] toGiveDirs[i];
+                        }
                         delete[] toGiveDirs;
                         return 0;
                     }
