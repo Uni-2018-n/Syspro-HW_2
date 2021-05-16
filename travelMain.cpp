@@ -26,21 +26,22 @@
 #include "travelStatsList.hpp"
 
 using namespace std;
-int action=0;
 #define PERMS 0666
+int action=0;
 
 void handlerCatch(int signo);
 
-int main(int argc, const char** argv) {
-    static struct sigaction act;
+int main(int argc, const char** argv){
+    static struct sigaction act;//change the signal default signal functions to the signal handler
     act.sa_handler = handlerCatch;
     sigfillset(&(act.sa_mask));
     sigaction(SIGINT, &act, NULL);
     sigaction(SIGQUIT, &act, NULL);
     sigaction(SIGCHLD, &act, NULL);
+
     int numMonitors, bloomSize, bufferSize;
     char* pathToDirs;
-    if(argc != 9){
+    if(argc != 9){//simple steps to set the command line arguments to parameters
         cout << "Error! Wrong parameters:" << endl;
         cout << "./travelMonitor -m numMonitors -b bufferSize -s sizeOfBloom -i input_dir" << endl;
         return -1;
@@ -59,51 +60,51 @@ int main(int argc, const char** argv) {
         }
     }
     DIR *inputDir;
-    if((inputDir = opendir(pathToDirs))== NULL){
+    if((inputDir = opendir(pathToDirs))== NULL){//open the input_dir provided in the command line to read the countries
         perror("Parent: Cant open dir\n");
         return -1;
     }
 
     struct dirent *dirent;
-    SLHeader countryList;
-    while((dirent=readdir(inputDir)) != NULL){
-        if(strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..")==0){
+    SLHeader countryList;//create a list with all the countries
+    while((dirent=readdir(inputDir)) != NULL){//for each item available in the input dir
+        if(strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..")==0){//skip the two subdirs indicating the previus dir
             continue;
         }
-        countryList.insert(dirent->d_name);
+        countryList.insert(dirent->d_name);//insert the countrie's name to the list
     }
 
     int activeMonitors;
-    if(countryList.count < numMonitors){
-        activeMonitors = countryList.count;
+    if(countryList.count < numMonitors){//in case the count of the countries is less than the monitors
+        activeMonitors = countryList.count;//we only need as many monitors as countries
     }else{
-        activeMonitors = numMonitors;
+        activeMonitors = numMonitors;//else we use as many monitors as user provided from command line
     }
-    string curr = countryList.popFirst();
-    string** toGiveDirs = new string*[activeMonitors];
+    string** toGiveDirs = new string*[activeMonitors];//create an 2D array, [i][j], i indicates the index of the monitor and j the index of the country that the monitor will work on
     for(int i=0;i<activeMonitors;i++){
         toGiveDirs[i] = new string[int(countryList.count/activeMonitors)+1];
     }
     int i=0;
     int j=0;
-    while(strcmp(curr.c_str(), "") != 0){
-        toGiveDirs[i][j] = curr;
-        i++;
-        if(i ==activeMonitors){
-            i=0;
-            j++;
+    string curr = countryList.popFirst();
+    while(strcmp(curr.c_str(), "") != 0){//for each country in the list (if popFirst returns "" it means that the list is empty)
+        toGiveDirs[i][j] = curr;//store the country to the array
+        j++;
+        if(j == int(countryList.count/activeMonitors)+1){
+            j=0;
+            i++;
         }
         curr = countryList.popFirst();
     }
 
-    int readfds[activeMonitors];
-    int writefds[activeMonitors];
-    pid_t monitorPids[activeMonitors];
+    int readfds[activeMonitors];//stores the every filedescriptor for reading 
+    int writefds[activeMonitors];//stores the every filedescriptor for writing
+    pid_t monitorPids[activeMonitors];//stores the pid number of each child
 
     for(int i=0;i<activeMonitors;i++){
-        string read_temp = "/tmp/fifoR." + to_string(i);
+        string read_temp = "/tmp/fifoR." + to_string(i); //our names FiFos are stored in the /tmp/ folder with fifoR/W.child_index name
         string write_temp = "/tmp/fifoW."+ to_string(i);
-        if(((mkfifo(read_temp.c_str(), PERMS)) <0) && (errno != EEXIST)){
+        if(((mkfifo(read_temp.c_str(), PERMS)) <0) && (errno != EEXIST)){//make the fifos
             perror("Parent: Cant create read FiFo\n");
         }
         if(((mkfifo(write_temp.c_str(), PERMS)) <0) &&(errno != EEXIST)){
@@ -111,65 +112,65 @@ int main(int argc, const char** argv) {
         }
 
         pid_t pid;
-        switch(pid=fork()){
+        switch(pid=fork()){//fork the new child
         case -1:
             perror("Parent: Fork ERROR\n");
             exit(-1);
             break;
         case 0:
-            execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);
+            execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);//and execlp the new child to the ./monitor process
             perror("Parent: Execlp ERROR\n");
             break;
         default:
-            monitorPids[i]=pid;
+            monitorPids[i]=pid;//in the parent process store the pid for use later
         }
 
-        if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
+        if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){//since the child is now created, open the fifos and store the file descriptors
             perror("Parent: Cant open read\n");
         }
         if((writefds[i] = open(write_temp.c_str(), O_WRONLY)) < 0){
             perror("Parent: Cant open write\n");
         }
         
-        if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){
+        if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){//send the first data to the monitor(data is the bufferSize, read readme for more)
             perror("Parent: BufferSize data write ERROR\n");
         }
     }
-    for(int i=0;i<activeMonitors;i++){
-        writePipeInt(writefds[i], bufferSize, bloomSize);
-        writePipeInt(writefds[i], bufferSize, int(countryList.count/activeMonitors)+1);
+    for(int i=0;i<activeMonitors;i++){//for each monitor, 
+        writePipeInt(writefds[i], bufferSize, bloomSize);//send the bloomSize value 
+        writePipeInt(writefds[i], bufferSize, int(countryList.count/activeMonitors)+1);//send the number of countries that the monitor will work on
         string tempPath = pathToDirs;
         writePipeInt(writefds[i], bufferSize, tempPath.length());
-        writePipe(writefds[i], bufferSize, tempPath);
-        for(int j=0;j<int(countryList.count/activeMonitors)+1;j++){
+        writePipe(writefds[i], bufferSize, tempPath);//and send the relative path for the root folder of the countries
+        for(int j=0;j<int(countryList.count/activeMonitors)+1;j++){//and start sending each country to the monitor
             writePipeInt(writefds[i], bufferSize, toGiveDirs[i][j].length());
             writePipe(writefds[i], bufferSize, toGiveDirs[i][j]);
         }
     }
-    VirlistHeader viruses(bloomSize);
+    VirlistHeader viruses(bloomSize);//after all of this is done wait for each monitor to receive the bloom filters
     for(int i=0;i<activeMonitors;i++){
         int tempSize= readPipeInt(readfds[i], bufferSize);
-        string tempBlooms[tempSize];
+        string tempBlooms[tempSize];//1D array to store the encoded bloom filters for each virus from the monitor
         for(int j=0;j<tempSize;j++){
-            int ts = readPipeInt(readfds[i], bufferSize);
+            int ts = readPipeInt(readfds[i], bufferSize);//read the blooms with error checking in case something happen while reading
             while(ts == -1){
                 writePipeInt(writefds[i], bufferSize, -1);
                 ts = readPipeInt(readfds[i], bufferSize);
             }
             writePipeInt(writefds[i], bufferSize, 0);
-            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+            tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);//and store it into a temporary string array
         }
-        if(readPipeInt(readfds[i], bufferSize) != 0){
+        if(readPipeInt(readfds[i], bufferSize) != 0){//read the confirmation message from the monitor 
             exit(-1);
         }
-        for(int j=0;j<tempSize;j++){
-            int k=tempBlooms[j].find("!");
+        for(int j=0;j<tempSize;j++){//for each virus
+            int k=tempBlooms[j].find("!");//find the ! indicator to substring the name of the virus
             VirlistNode* curr;
-            if((curr = viruses.searchVirus(tempBlooms[j].substr(0, k))) == NULL){
-                curr = viruses.insertVirus(tempBlooms[j].substr(0,k));
+            if((curr = viruses.searchVirus(tempBlooms[j].substr(0, k))) == NULL){//check if the virus exists, 
+                curr = viruses.insertVirus(tempBlooms[j].substr(0,k));//if not create it
             }
-            tempBlooms[j].erase(0,k+1);
-            curr->insertBloom(tempBlooms[j]);
+            tempBlooms[j].erase(0,k+1);//remove the name(and the !) of the encoded string
+            curr->insertBloom(tempBlooms[j]);//and finally append the data to the bloom filter
         }
     }
 
@@ -183,57 +184,59 @@ int main(int argc, const char** argv) {
     "/exit" << endl << endl;
 
     while(true){
-        switch(action){
-            case 1:{
-                action =0;
+        switch(action){//swtich-case method to see the type of action we need to do
+            case 1:{//case 1 indicated SIGINT/SIGQUIT signal handlers
+                action = 0;
                 delete[] pathToDirs;
                 closedir(inputDir);
                 int status;
                 pid_t pid;
-                for(int i=0;i<numMonitors;i++){
-                    kill(monitorPids[i], SIGKILL);
-                    pid = waitpid(monitorPids[i], &status, 0);
-                    cout << "child " << (long)pid << " got exited " << status << endl;
-                    close(readfds[i]);
+                for(int i=0;i<numMonitors;i++){//for each child 
+                    kill(monitorPids[i], SIGKILL);//send a SIGKILL signal to stop them
+                    pid = waitpid(monitorPids[i], &status, 0);//wait for the exit status
+                    cout << "child " << (long)pid << " got exited " << status << endl;//print it
+                    close(readfds[i]);//close the file descriptors 
                     close(writefds[i]);
-                    if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
+                    if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){//unlink so the FiFos will get deleted
                         perror("Parent: action 1 cant unlink Write\n");
                     }
                     if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
                         perror("Parent: action 1 cant unlink Read\n");
                     }
                 }
-                generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);
+                generateLogFileParent(activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, stats.total, stats.accepted, stats.rejected);//and generate the log_file
                 for(int i=0;i<activeMonitors;i++){
                     delete[] toGiveDirs[i];
                 }
                 delete[] toGiveDirs;
                 return 0;
             }
-            case 2:{
-                action =0;
+            case 2:{//case 2 indicated the SIGCHLD signal handler
+                action = 0;
                 int status;
                 pid_t pid;
-                pid = wait(&status);
-                for(int i=0;i<activeMonitors;i++){
-                    if(monitorPids[i] == pid){
-                        close(readfds[i]);
+                pid = wait(&status);//since the process just stoped, wait for the exit status so it wont be a zombie process
+                for(int i=0;i<activeMonitors;i++){//and since the wait() function returns the pid of the child that just stoped
+                    if(monitorPids[i] == pid){//find the child inside the pid array
+                        close(readfds[i]);//close the already existing file descriptors 
                         close(writefds[i]);
-                        if(unlink(("/tmp/fifoW."+to_string(i)).c_str()) < 0){
-                            perror("Parent: action 2 cant unlink Write\n");
-                        }
-                        if(unlink(("/tmp/fifoR."+to_string(i)).c_str()) <0){
-                            perror("Parent: action 2 cant unlink Read\n");
-                        }
                         string read_temp = "/tmp/fifoR." + to_string(i);
                         string write_temp = "/tmp/fifoW." + to_string(i);
-                        if((mkfifo(read_temp.c_str(), PERMS)) <0){
+                        if(unlink((write_temp.c_str())) < 0){//unlink from the fifos
+                            perror("Parent: action 2 cant unlink Write\n");
+                        }
+                        if(unlink((read_temp.c_str())) <0){
+                            perror("Parent: action 2 cant unlink Read\n");
+                        }
+
+
+                        if((mkfifo(read_temp.c_str(), PERMS)) <0){//create the new clean fifos
                             perror("Parent: action 2 cant create Read FiFo\n");
                         }
                         if((mkfifo(write_temp.c_str(), PERMS)) <0){
                             perror("Parent: action 2 cant create Write FiFo\n");
                         }
-                        switch(pid=fork()){
+                        switch(pid=fork()){//fork the new child process
                         case -1:
                             perror("Parent: Fork ERROR\n");
                             exit(-1);
@@ -243,7 +246,7 @@ int main(int argc, const char** argv) {
                             perror("Parent: Execlp ERROR\n");
                             break;
                         default:
-                            monitorPids[i]=pid;
+                            monitorPids[i]=pid;//and finally store the updated pid and fds to the arrays
                             if((readfds[i] = open(read_temp.c_str(), O_RDONLY)) < 0){
                                 perror("Parent: Cant open read\n");
                             }
@@ -252,7 +255,7 @@ int main(int argc, const char** argv) {
                             }
                         }
 
-                        if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){
+                        if(write(writefds[i], &bufferSize, sizeof(int)) != sizeof(int)){//since we have a completly new child process we need to repeat the initialization routine so the monitor will work with the same data the old one did
                             perror("Parent: BufferSize data write ERROR\n");
                         }
                         writePipeInt(writefds[i], bufferSize, bloomSize);
@@ -295,7 +298,7 @@ int main(int argc, const char** argv) {
                 }
             }
             break;
-            default:
+            default://default case is the user command case
                 while(true){//simple switch-case but for strings
                     string command;
                     cout << "Waiting for command: ";
@@ -304,7 +307,7 @@ int main(int argc, const char** argv) {
                         cin.clear();
                         break;
                     }
-                    if(command == "/exit"){
+                    if(command == "/exit"){//exit command, just like case 1 
                         delete[] pathToDirs;
                         closedir(inputDir);
                         int status;
@@ -350,12 +353,15 @@ int main(int argc, const char** argv) {
                         travelRequest(&stats, &viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
                         cout << "Done!" << endl;
                     }else if(command == "/travelStats"){
-                        if(i==3){
+                        if(i==3){//in case we have a country or not
                             stats.getStats(temp[0], temp[1], temp[2], temp[3]);
-                        }else{
+                            cout << "Done!" << endl;
+                        }else if(i==2){
                             stats.getStats(temp[0], temp[1], temp[2]);
+                            cout << "Done!" << endl;
+                        }else{
+                            cout << "Error /travelStatus wrong input" << endl;
                         }
-                        cout << "Done!" << endl;
                     }else if(command == "/addVaccinationRecords"){
                         addVaccinationRecords(readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, temp[0], &viruses);
                         cout << "Done!" << endl;
@@ -373,7 +379,7 @@ int main(int argc, const char** argv) {
     }
 }
 
-void handlerCatch(int signo){
+void handlerCatch(int signo){//simple signal handler
     if(signo == SIGINT || signo == SIGQUIT){
         action = 1;
     }else if(signo == SIGCHLD){

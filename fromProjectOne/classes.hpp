@@ -22,7 +22,7 @@ public:
   void print();
 };
 
-class SRListNode{
+class SRListNode{//list with all vaccinations for a citizen
   public:
     string vir;
     int vacced;
