@@ -1,11 +1,11 @@
 #ifndef _SLIST_HPP_
 #define _SLIST_HPP_
-//sorted list for strings
 
 #include <string>
 
 using namespace std;
 
+//simple sorted list for strings
 class SLnode{
     string txt;
     SLnode* next;
@@ -25,7 +25,6 @@ public:
     ~SLHeader();
     void insert(string txt);
     string popFirst();
-    void test_print();
 };
 
 #endif

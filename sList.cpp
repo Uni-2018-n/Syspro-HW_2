@@ -1,6 +1,7 @@
 #include "sList.hpp"
 #include <cstring>
 #include <iostream>
+
 //SLnode
 SLnode::SLnode(string t){
     txt = t;
@@ -37,17 +38,17 @@ SLHeader::~SLHeader(){
 }
 
 void SLHeader::insert(string txt){
-    if(start == NULL){
-        start= new SLnode(txt);    
+    if(start == NULL){//case list is empty
+        start= new SLnode(txt);
         count++;
         return;
     }
-    if(strcmp(txt.c_str(), start->getTxt().c_str()) <0){
-        start = new SLnode(txt, start);
+    if(strcmp(txt.c_str(), start->getTxt().c_str()) <0){//our node is smaller than the first node of the list
+        start = new SLnode(txt, start);//insert at start
         count++;
         return;
     }
-    if(start != NULL){
+    if(start != NULL){//otherwise go ahead and find a spot in the list 
         SLnode* temp = start;
         while(temp->getNext() != NULL){
             if(strcmp(txt.c_str(), temp->getNext()->getTxt().c_str()) <0){
@@ -63,21 +64,13 @@ void SLHeader::insert(string txt){
     }
 }
 
-string SLHeader::popFirst(){
+string SLHeader::popFirst(){//since we have a sorted list popFirst is really usefull
     if(start == NULL){
-        return "";
+        return "";//incase of an empty list we send "" to indicate it
     }
     string temp = start->getTxt();
     SLnode* t = start;
     start = start->getNext();
     delete t;
-    return temp;
-}
-
-void SLHeader::test_print(){
-    SLnode* temp = start;
-    while(temp != NULL){
-        cout << temp->getTxt() << endl;
-        temp = temp->getNext();
-    }
+    return temp;//we care about the string and not the node so its easier to delete nodes from here
 }

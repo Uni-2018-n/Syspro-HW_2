@@ -3,9 +3,11 @@
 
 #include <string>
 using namespace std;
+
+//simple list to have all the requests in one place
 class TSNode{
 public:
-    int outcome;
+    int outcome;//accepted or rejected
     string country;
     string date;
     TSNode* next;
@@ -16,7 +18,7 @@ class TSHeader{
     TSNode* start;
     TSNode* end;
 public:
-    int total;
+    int total;//simple counters for statistics printing
     int rejected;
     int accepted;
     TSHeader();
