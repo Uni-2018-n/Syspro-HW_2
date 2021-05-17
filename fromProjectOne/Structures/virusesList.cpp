@@ -171,42 +171,6 @@ void VirlistHeader::vaccineStatusBloom(int i, string v){//simple method for chec
   }
 }
 
-void VirlistHeader::vaccineStatus(int i, string v){
-  VirlistNode* temp = this->searchVirus(v);
-  if(temp == NULL){
-      cout << "Virus not found" << endl;
-  }else{
-    SkiplistNode* t = temp->getVacced()->searchItem(i);
-    if(t != NULL){
-      cout << "VACCINATED ON " << flipDate(t->getDateVaccinated()) << endl;
-      return;
-    }
-    cout << "NOT VACCINATED" << endl;
-  }
-}
-
-string VirlistHeader::vaccineStatus(int i, string v, bool prints){
-  VirlistNode* temp = this->searchVirus(v);
-  if(temp == NULL){
-    if(prints){
-      cout << "Virus not found" << endl;
-    }
-    return "";
-  }else{
-    SkiplistNode* t = temp->getVacced()->searchItem(i);
-    if(t != NULL){
-      if(prints){
-        cout << "VACCINATED ON " << flipDate(t->getDateVaccinated()) << endl;
-      }
-      return t->getDateVaccinated();
-    }
-    if(prints){
-      cout << "NOT VACCINATED" << endl;
-    }
-    return "";
-  }
-}
-
 void VirlistHeader::vaccineStatus(int i){
   VirlistNode* temp = start;
   while(temp != NULL){
@@ -222,7 +186,34 @@ void VirlistHeader::vaccineStatus(int i){
   }
 }
 
-SRListHeader* VirlistHeader::vaccineStatus(int i, bool prints){
+void VirlistHeader::vaccineStatus(int i, string v){
+  VirlistNode* temp = this->searchVirus(v);
+  if(temp == NULL){
+      cout << "Virus not found" << endl;
+  }else{
+    SkiplistNode* t = temp->getVacced()->searchItem(i);
+    if(t != NULL){
+      cout << "VACCINATED ON " << flipDate(t->getDateVaccinated()) << endl;
+      return;
+    }
+    cout << "NOT VACCINATED" << endl;
+  }
+}
+
+string VirlistHeader::vaccineStatus(int i, string v, bool prints){//same as above but instead of printing we simply return the dateVaccinated
+  VirlistNode* temp = this->searchVirus(v);
+  if(temp == NULL){
+    return "";
+  }else{
+    SkiplistNode* t = temp->getVacced()->searchItem(i);
+    if(t != NULL){
+      return t->getDateVaccinated();
+    }
+    return "";
+  }
+}
+
+SRListHeader* VirlistHeader::vaccineStatus(int i, bool prints){//same as above but instead of printing, we inserting data into SRListHeader and return it
   SRListHeader* toReturn= new SRListHeader();
   VirlistNode* temp = start;
   while(temp != NULL){

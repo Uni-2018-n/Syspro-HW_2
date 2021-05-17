@@ -47,8 +47,8 @@ public:
   VirlistNode* searchVirus(string);
   void vaccineStatusBloom(int i, string v);
   void vaccineStatus(int i, string v);
-  string vaccineStatus(int i, string v, bool prints);
   void vaccineStatus(int i);
+  string vaccineStatus(int i, string v, bool prints);
   SRListHeader* vaccineStatus(int i, bool prints);
   bool vaccinateNow(int i, string v);
   void listNonVaccinatedPersons(string v);

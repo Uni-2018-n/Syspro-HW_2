@@ -14,13 +14,11 @@ class bloomFilter{
   unsigned long hash_i(unsigned char *str, unsigned int i);
 public:
   bloomFilter(int l);
-  bloomFilter(string i);
   ~bloomFilter();
   void insert(int s);
   void insert(string s);
   bool is_inside(int s);
   string toString();
-  void testPrint();
 };
 
 #endif

@@ -31,7 +31,7 @@ void bloomFilter::insert(int s){
 
 void bloomFilter::insert(string k){
   for(int i=0;i<len;i++){
-    array[i] = array[i] | k[i];
+    array[i] = array[i] | k[i]; //logical or each k[i] with the array[i] to simply append any new data but also keep the old data
   }
 }
 
@@ -51,21 +51,13 @@ bool bloomFilter::is_inside(int s){
   return true;
 }
 
-string bloomFilter::toString(){
+string bloomFilter::toString(){//since our bloom array is an array of chars create a string object and fill it with the data from the array
   string temp = "";
   for(int i=0;i<len;i++){
     temp = temp + array[i];
   }
   return temp;
 }
-
-void bloomFilter::testPrint(){
-  for(int i=0;i<len;i++){
-    cout << getpid() << ": " << array[i];
-  }
-  cout << endl;
-}
-
 
 
 

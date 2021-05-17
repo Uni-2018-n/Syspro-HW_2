@@ -21,39 +21,12 @@ void citizenRecord::print(){
   age << endl;
 }
 
-////////////////////
+////////////////////SRListNode
 SRListNode::SRListNode(string v, int vacc, string d, SRListNode* n){
   vir = v;
   vacced = vacc;
   date = d;
   next = n;
-}
-
-////////////////////
-SRListHeader::SRListHeader(){
-  start = NULL;
-  len = 0;
-}
-SRListHeader::~SRListHeader(){
-  SRListNode* temp= start;
-  while(temp != NULL){
-    SRListNode* t= temp;
-    start = temp->next;
-    delete t;
-  }
-}
-void SRListHeader::insert(string vir, int vacced, string date){
-  start = new SRListNode(vir, vacced, date, start);
-  len++;
-}
-
-SRListNode* SRListHeader::pop(){
-  if(start == NULL){
-    return NULL;
-  }
-  SRListNode* temp= start;
-  start = temp->next;
-  return temp;
 }
 
 string flipDate(string t){//used to flip the date incase we need to print a date in normal form
@@ -143,4 +116,32 @@ string checkAndFormatDate(string t){//used to format and check the date
     to_return = temp + to_return;
     return to_return;
   }
+}
+
+////////////////////SRListHeader
+SRListHeader::SRListHeader(){
+  start = NULL;
+  len = 0;
+}
+SRListHeader::~SRListHeader(){
+  SRListNode* temp= start;
+  while(temp != NULL){
+    SRListNode* t= temp;
+    start = temp->next;
+    delete t;
+  }
+}
+void SRListHeader::insert(string vir, int vacced, string date){//simple insert at start of list function
+  start = new SRListNode(vir, vacced, date, start);
+  len++;
+}
+
+SRListNode* SRListHeader::pop(){//pop the first node or return null if empty
+  if(start == NULL){
+    return NULL;
+  }
+  SRListNode* temp= start;
+  start = temp->next;
+  len--;
+  return temp;
 }

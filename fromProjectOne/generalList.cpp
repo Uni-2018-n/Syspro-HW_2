@@ -143,10 +143,6 @@ void GlistHeader::vaccineStatusBloom(int i, string v){
   viruses->vaccineStatusBloom(i,v);
 }
 
-string GlistHeader::vaccineStatus(int i, string v, bool prints){
-  return viruses->vaccineStatus(i, v, prints);
-}
-
 void GlistHeader::vaccineStatus(int i, string v){
   viruses->vaccineStatus(i, v);
 }
@@ -155,7 +151,11 @@ void GlistHeader::vaccineStatus(int i){
   viruses->vaccineStatus(i);
 }
 
-SRListHeader* GlistHeader::vaccineStatus(int i, bool prints){
+string GlistHeader::vaccineStatus(int i, string v, bool prints){
+  return viruses->vaccineStatus(i, v, prints);
+}
+
+SRListHeader* GlistHeader::vaccineStatus(int i, bool prints){//return a SRListHeader list with all the vaccinations the citizen was done
   SRListHeader* temp = viruses->vaccineStatus(i, prints);
   listNode* citizen = this->searchCitizen(i);
   temp->citizen = citizen->getCitizen();
