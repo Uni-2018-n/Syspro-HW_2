@@ -1,0 +1,6 @@
+/travelRequest 2749 28-1-1798 Canada Greece Trichomoniasis
+/travelRequest 2749 28-7-1796 Canada Greece Trichomoniasis
+/travelStats Trichomoniasis 28-1-1796 28-1-1799
+/travelRequest 2749 28-1-1795 Canada Greece Trichomoniasis
+/travelStats Trichomoniasis 28-1-1795 28-1-1799 Canada
+/exit

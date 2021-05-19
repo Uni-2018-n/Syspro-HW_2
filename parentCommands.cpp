@@ -34,10 +34,16 @@ void travelRequest(TSHeader* stats, VirlistHeader* viruses, int readfds[], int w
                         int yearV, monthV, dayV;//break the date vaccinated to 3 variables
                         int yearT, monthT, dayT;//same with travel date
                         char dash;
+                        date = checkAndFormatDate(date);
                         stringstream temp(dateV + "-" + date);//break it with string stream for simplicity
                         temp >> yearV >> dash >> monthV >> dash >> dayV >> dash
                              >> yearT >> dash >> monthT >> dash >> dayT;
-
+                        if(strcmp(date.c_str(), dateV.c_str()) < 0){
+                            cout << "REQUEST REJECTED - TRAVEL DATE BEFORE VACCINATION DATE" << endl;
+                            writePipeInt(writefds[i], bufferSize, 0);
+                            stats->insert(0, countryFrom, date);
+                            return;
+                        }
                         if(((yearT - yearV)*12 + monthT - monthV) <= 6){//calculate the number of months between the two dates to see if the vaccination status will be in range
                             cout << "REQUEST ACCEPTED - HAPPY TRAVELS" << endl;//if it is accept the request
                             writePipeInt(writefds[i], bufferSize, 1);//inform the monitor that the request was accepted(for simplicity)
@@ -73,8 +79,12 @@ void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int ac
                 string tempBlooms[tempSize];
                 for(int j=0;j<tempSize;j++){
                     int ts = readPipeInt(readfds[i], bufferSize);
-                    tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+                    while(ts == -1){
+                        writePipeInt(writefds[i], bufferSize, -1);
+                        ts = readPipeInt(readfds[i], bufferSize);
+                    }
                     writePipeInt(writefds[i], bufferSize, 0);
+                    tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);//and store it into a temporary string array
                 }
                 for(int j=0;j<tempSize;j++){//after that update the bloom filters that we just readed from the monitor process
                     int k=tempBlooms[j].find("!");
@@ -97,7 +107,8 @@ void searchVaccinationStatus(int readfds[], int writefds[], int bufferSize, int 
     for(int i=0;i<activeMonitors;i++){//for each monitor
         writePipeInt(writefds[i], bufferSize, 104);//send a 104 protocol message
         writePipeInt(writefds[i], bufferSize, citizenID);//and the citizenID
-        if(readPipeInt(readfds[i], bufferSize) == 1){//if the monitor responds with 1 it means that we've found the citizen in the monitor(so we dont need to continue with the next monitors)
+        int ppp= readPipeInt(readfds[i], bufferSize);
+        if(ppp == 1){//if the monitor responds with 1 it means that we've found the citizen in the monitor(so we dont need to continue with the next monitors)
             int tempSize = readPipeInt(readfds[i], bufferSize);//start reading information of the citizen and the vaccines that the citizen has done(or not)
             string temp = readPipe(readfds[i], tempSize, bufferSize);
             int age = readPipeInt(readfds[i], bufferSize);

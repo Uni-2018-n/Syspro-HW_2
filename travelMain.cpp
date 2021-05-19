@@ -301,7 +301,7 @@ int main(int argc, const char** argv){
             default://default case is the user command case
                 while(true){//simple switch-case but for strings
                     string command;
-                    cout << "Waiting for command: ";
+                    cout << "Waiting for command: " << endl;
                     cin >> command;
                     if(cin.fail()){ // if we wait for input and get signal this cin fail and user havent input anything yet so instantly go to specific action
                         cin.clear();
@@ -353,10 +353,10 @@ int main(int argc, const char** argv){
                         travelRequest(&stats, &viruses, readfds, writefds, bufferSize, activeMonitors, int(countryList.count/activeMonitors)+1, toGiveDirs, monitorPids, stoi(temp[0]), temp[1], temp[2], temp[3], temp[4]);
                         cout << "Done!" << endl;
                     }else if(command == "/travelStats"){
-                        if(i==3){//in case we have a country or not
+                        if(i==4){//in case we have a country or not
                             stats.getStats(temp[0], temp[1], temp[2], temp[3]);
                             cout << "Done!" << endl;
-                        }else if(i==2){
+                        }else if(i==3){
                             stats.getStats(temp[0], temp[1], temp[2]);
                             cout << "Done!" << endl;
                         }else{
@@ -383,6 +383,7 @@ void handlerCatch(int signo){//simple signal handler
     if(signo == SIGINT || signo == SIGQUIT){
         action = 1;
     }else if(signo == SIGCHLD){
+        cout << "SIGCHLD" << endl;
         action = 2;
     }
 }

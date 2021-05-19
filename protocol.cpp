@@ -3,6 +3,7 @@
 #include "fromProjectOne/generalList.hpp"
 #include "funcs.hpp"
 #include <string>
+#include <unistd.h>
 
 int handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc, GlistHeader* main_list){
     switch(currFunc){//simple switch-case for each protocol message case
@@ -24,7 +25,7 @@ int handlFunctionMonitor(int readfd, int writefd, int bufferSize, int currFunc, 
         case 104:{//104 case is for  /searchVaccinationStatus command
             int id = readPipeInt(readfd, bufferSize);//read the citizenID
             SRListHeader* returnedViruses = main_list->vaccineStatus(id, false);//vaccineStatus function with boolean returns a SRListHeader list header with all the vaccinations that a citizen has done instead of printing messages
-            if(returnedViruses->len > 0){//check if the citizen exists
+            if(returnedViruses != NULL && returnedViruses->len > 0){//check if the citizen exists
                 writePipeInt(writefd, bufferSize, 1);//send 1 to indicate that the citizen exists here
                 string temp = to_string(*(returnedViruses->citizen->citizenId)) + " " + returnedViruses->citizen->firstName + " " + returnedViruses->citizen->lastName + " " + returnedViruses->citizen->getCountry();//format the information string(id, name, country)
                 writePipeInt(writefd, bufferSize, temp.length());

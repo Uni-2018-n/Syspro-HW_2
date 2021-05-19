@@ -22,7 +22,7 @@ TSHeader::TSHeader(){
 void TSHeader::insert(int status, string country, string date){//simple insert at end of the list function
     date = checkAndFormatDate(date);//check and format date function called so we have yyyy-mm-dd format
     if(start == NULL){
-        start=  new TSNode(status, country, date);
+        start =  new TSNode(status, country, date);
         end = start;
     }else{
         end->next = new TSNode(status, country, date);

@@ -156,8 +156,11 @@ string GlistHeader::vaccineStatus(int i, string v, bool prints){
 }
 
 SRListHeader* GlistHeader::vaccineStatus(int i, bool prints){//return a SRListHeader list with all the vaccinations the citizen was done
-  SRListHeader* temp = viruses->vaccineStatus(i, prints);
   listNode* citizen = this->searchCitizen(i);
+  if(citizen == NULL){
+    return NULL;
+  }
+  SRListHeader* temp = viruses->vaccineStatus(i, prints);
   temp->citizen = citizen->getCitizen();
   return temp;
 }

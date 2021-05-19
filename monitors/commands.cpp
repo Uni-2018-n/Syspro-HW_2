@@ -27,7 +27,7 @@ void appendData(int numofcountries, string path, string countries[], int* fileCo
     //appends data to the main_list's structures
     for(int i=0;i<numofcountries;i++){
         DIR *curr_dir;
-        if((curr_dir = opendir((path+countries[i]+'/').c_str()))== NULL){//for each country
+        if((curr_dir = opendir((path+ '/' +countries[i]+'/').c_str()))== NULL){//for each country
             perror("Child: appendData Cant open dir\n");
         }
         int count=0;
