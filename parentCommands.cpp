@@ -13,35 +13,6 @@
 
 using namespace std;
 
-void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], string country, VirlistHeader* viruses){
-    //function for the addVaccinationRecord command
-    for(int i=0;i<activeMonitors;i++){//find the monitor that has the country we have added files into
-        for(int j=0;j<dirCount;j++){
-            if(strcmp(toGiveDirs[i][j].c_str(), country.c_str()) == 0){
-                kill(monitorPids[i], SIGUSR1);//send a SIGUSR1 signal to the monitor process
-                int tempSize= readPipeInt(readfds[i], bufferSize);//and start reading the new updated bloom filters
-                string tempBlooms[tempSize];
-                for(int j=0;j<tempSize;j++){
-                    int ts = readPipeInt(readfds[i], bufferSize);
-                    tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
-                    writePipeInt(writefds[i], bufferSize, 0);
-                }
-                for(int j=0;j<tempSize;j++){//after that update the bloom filters that we just readed from the monitor process
-                    int k=tempBlooms[j].find("!");
-                    VirlistNode* curr;
-                    if((curr = viruses->searchVirus(tempBlooms[j].substr(0, k))) == NULL){
-                        curr = viruses->insertVirus(tempBlooms[j].substr(0,k));
-                    }
-                    tempBlooms[j].erase(0,k+1);
-                    curr->insertBloom(tempBlooms[j]);
-                }
-                return;
-            }
-        }
-    }
-    cout << "ERROR country not found" << endl;
-}
-
 void travelRequest(TSHeader* stats, VirlistHeader* viruses, int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], int citizenID, string date, string countryFrom, string countryTo, string virusName){
     //function for the /travelRequest command
     if(viruses->searchVirus(virusName)->getBloom()->is_inside(citizenID) == 0){//first check if we can have a quick response from the parent's bloom filters
@@ -92,7 +63,34 @@ void travelRequest(TSHeader* stats, VirlistHeader* viruses, int readfds[], int w
     return;
 }
 
-
+void addVaccinationRecords(int readfds[], int writefds[], int bufferSize, int activeMonitors, int dirCount, string** toGiveDirs, int monitorPids[], string country, VirlistHeader* viruses){
+    //function for the addVaccinationRecord command
+    for(int i=0;i<activeMonitors;i++){//find the monitor that has the country we have added files into
+        for(int j=0;j<dirCount;j++){
+            if(strcmp(toGiveDirs[i][j].c_str(), country.c_str()) == 0){
+                kill(monitorPids[i], SIGUSR1);//send a SIGUSR1 signal to the monitor process
+                int tempSize= readPipeInt(readfds[i], bufferSize);//and start reading the new updated bloom filters
+                string tempBlooms[tempSize];
+                for(int j=0;j<tempSize;j++){
+                    int ts = readPipeInt(readfds[i], bufferSize);
+                    tempBlooms[j] = readPipe(readfds[i], ts, bufferSize);
+                    writePipeInt(writefds[i], bufferSize, 0);
+                }
+                for(int j=0;j<tempSize;j++){//after that update the bloom filters that we just readed from the monitor process
+                    int k=tempBlooms[j].find("!");
+                    VirlistNode* curr;
+                    if((curr = viruses->searchVirus(tempBlooms[j].substr(0, k))) == NULL){
+                        curr = viruses->insertVirus(tempBlooms[j].substr(0,k));
+                    }
+                    tempBlooms[j].erase(0,k+1);
+                    curr->insertBloom(tempBlooms[j]);
+                }
+                return;
+            }
+        }
+    }
+    cout << "ERROR country not found" << endl;
+}
 
 void searchVaccinationStatus(int readfds[], int writefds[], int bufferSize, int activeMonitors, int monitorPids[], int citizenID){
     //function for /searchVaccinationStatus command

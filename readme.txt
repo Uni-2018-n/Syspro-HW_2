@@ -72,3 +72,26 @@ Here we have another simple linked list with a header, but here we have a list t
 This is usefull in the parent process while sorting the countries and then finding out which monitor will get each country.
 This list sorts its nodes when inserting new data and its sorting it ascendingly(TODO: MAKE SURE THIS IS CORRECT) so with the pop() function we get the greater country
 in the list.
+
+For the parent proccess:
+First of all we have 2 files. 
+The first file is named parentCommands.cpp/hpp:
+Here I've organized all the commands and SIGNAL functions that had to make it in a seperate function.
+--First of all we have the function called travelRequest, used when the user sends the /travelRequest command.
+Here we first(as instructed) we check if the virusName's bloom filter knows if the citizen is maybe vaccinated or not. If not we simply print the message and append the 
+request record to the statistics list(TSHeader stats parameter). If the bloom filter returns something we are maybe sure that the citizen has been vaccinated so we find
+the monitor that handles the countryFrom country and send a 101 protocol message indicating that we are running a travelRequest command. After that we send all the nessasary
+data through the named pipe and wait for a int response indicating if the citizen is vaccinated or not. If yes, the next thing we need to do is wait for the date vaccinated, then
+with a simple equation we count how many months the date of vaccination is from the traveling date. If there are less or equal than 6 months between the two dates we simply print the message,
+send a 1 int to the monitor indicating that the travelRequest was accepted and finally insert the request record to the stats list.
+If the monitor returned 0 or the dates are more than 6 months far we print the desired message and send/insert the correct data to the monitor/stats list.
+Finally its good to mention that incase something wrong has happen(country from not inside our input file).
+
+--For the second function, searchVaccinationStatus, we use it for the command /searchVaccinationStatus.
+First of all we send to all the monitors the 104 protocol message untill we have a monitor that responds possitive meaning that the monitor found the citizen we are looking for.
+If a monitor send a 1 monitor sends all the information can find for the specific citizen, sends a len with how many vaccinations the citizen has done and finally send for each vaccination 
+the viruse name, an int if the citizen is vaccinated or not and if vaccinated send the date vaccinated and print all the data.
+Since our citizens are unique and we can have the same citizen inside 2 monitors we return to the main function after this loop is done.
+
+--For the third and final function, generateLogFileParent used when the program is about to finish or receive SIGINT or SIGQUIT signals.
+First the function created a log_file.parentPid and print all the countries and the full statistics we have.
