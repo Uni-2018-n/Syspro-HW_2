@@ -1,9 +1,7 @@
-REMEMBER, SIGKILL CANT BE CATCHED.
+Antonis Kalamakis SDI1800056
 
 
-
-
-
+compile and run as instructed by the assignment.
 
 First of all, I've used parts of my first project in this project. These parts are in a folder called fromProjectOne.
 Because of the fact that I've used them i had to do some small adjustments and add some functions to make things work
@@ -123,3 +121,27 @@ For case the action variable is set to 2 indicating we had a SIGCHLD signal, we 
 a fresh named fifo and child process the same as the begining of the travelMonitor's main function so the new monitor will have the same data as the old one had.
 
 This process is always waiting for user input so we wont have any unessasary cpu usage by busy waiting.
+
+For the child processes we have 2 extra files. 
+monitorMain.cpp and commands.cpp/hpp
+For the commands.cpp/hpp we have 3 functions
+first function is generateLogFile, the same as parent but with diffrent parameters because we only want to print the countries that one monitor handles.
+Second is appendData, here we search each subdirectory and count how many files there are there. If the files counted are more than the original files counted(see later) means that we have new files in the directory
+so we insert the records to the main_list.
+For handlFunctionMonitor, we have one switch-case, this switch-case has the currFunc variable that could be 101 or 104.
+101 case is for when we are in the middle of a /travelRequest command and 104 is for /searchVaccinationStatus.
+For 101 protocol message we simply do everything explainted in the parent process but on the receiving side. 
+and for 104 the same, its good to mention that both of these functions are similar to the ones of project one but with minor changes to suit our needs.
+
+monitorMain.cpp file is the receiving end of the parent actions we metioned earlier.
+First the monitor intializes with data sent from the parent process and intializes the sigaction handlers with the handler function similar to the one the parent had.
+The teqniques used here to handle the signal actions are the same as the parents and the process is kept waiting for a readPipeInt, if the parent sent a command(101 or 104) we simply pass it to the handlFunctionMonitor
+if not (failed due to a signal catched) the process goes to handl the signal action.
+
+For the bash script:
+simply at the begining do some error checking for the user input.
+after that declare a dictionary and create a array with all the lines that our input file has.
+Now for each line break the line into an array and find if the word with index 3(the country) exists. If not create it.
+Now check if the dictionary has a key the country, if create it, create the first .txt file into the array and append the line. finally ++ the dictionary so next time we append to the new file.
+if the dictionary has as key the country simply create the file if needed and append the line and ++ it to continue to the next one.
+repeat for each line.

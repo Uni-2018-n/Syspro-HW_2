@@ -104,7 +104,7 @@ int main(int argc, const char** argv){
             exit(-1);
             break;
         case 0:
-            execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);//and execlp the new child to the ./monitor process
+            execlp("./Monitor", read_temp.c_str(), write_temp.c_str(), NULL);//and execlp the new child to the ./monitor process
             perror("Parent: Execlp ERROR\n");
             break;
         default:
@@ -228,7 +228,7 @@ int main(int argc, const char** argv){
                             exit(-1);
                             break;
                         case 0:
-                            execlp("./monitor", read_temp.c_str(), write_temp.c_str(), NULL);
+                            execlp("./Monitor", read_temp.c_str(), write_temp.c_str(), NULL);
                             perror("Parent: Execlp ERROR\n");
                             break;
                         default:
