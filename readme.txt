@@ -1,14 +1,8 @@
 REMEMBER, SIGKILL CANT BE CATCHED.
 
-TODO: might need to add some queue in case multiple signals are going to come
-TODO: put a flag in funcs for parent etc
 
 
 
-//functions for reading and writing into named pipes
-//there is a specific function for writing/reading an int for simplicity
-//and a specific function for writing/reading some data
-//for this implementation reading and writing comes in a form of string and first is nessasary to read/write the size of the string
 
 
 First of all, I've used parts of my first project in this project. These parts are in a folder called fromProjectOne.
@@ -94,3 +88,37 @@ Since our citizens are unique and we can have the same citizen inside 2 monitors
 
 --For the third and final function, generateLogFileParent used when the program is about to finish or receive SIGINT or SIGQUIT signals.
 First the function created a log_file.parentPid and print all the countries and the full statistics we have.
+
+For travelMain.cpp/hpp:
+First of all we have a handler function that is assinged into the signaction struct, this function handles SIGINT, SIGQUIT and SIGCHLD signals and these are set at the begining of the main function.
+More over its good to mention that here we have a global variable named action, this variable is being set on the signal handler. If this function is set to 1 it means that the process received a signal SIGINT or SIGQUIT,
+finally this variable is getting reseted when we are doing all the nessasary actions we need because we received the signal.
+In the main function, first we set the signal handler and the sigaction for each signal we need to handle. After that, a simple argument checking and argument to variable seting and opening the input directory provided
+from the user. Next thing to do is inserting the correct subdirectories into a SLHeader list(skipping the . and .. directories). Because of that now we have a sorted list with all the countries located
+into the provided input_dir so its time to see which monitor will get each country.
+Before that though we need to check how many monitors we actually need in the program. Since there is a chance we have more monitors than countries we will only need as many monitors as countries so we wont have any monitors 
+without any data. Finally after we figure that out we need to intialize and fill the 2D array storing which country each monitor will get. Since we need to give the countries alphabetically we always pop the firs(each time)
+country from the list and we set it to the index of the array, (countryList.count/activeMonitors)+1 times for each monitor. 
+After all of these is done its time to create the fifos for each monitor. One for writing and one for reading for each monitor. The fifos are stored at the /tmp/ directory and set with permissions 0666.
+In this implementation im creating each fifo, then start the specific child with fork and finally in the child's case im using a execlp to run the ./monitor process. After that im storing the child's pid into a array to be
+able to use it later. Finally for the initialization to be done im opening the named fifos for both reading and writing and im storing their file descriptors into arrays for later use.
+Since sending more data than the named fifos into the arguments of the child's process isnt allowed, im sending the first data stream to the child as a sizeof(int) message to let it know how much the allowed bufferSize is.(This
+happens even if the buffer is less than sizeof(int)).
+After that the parent sends all the information the child will need such as, bloomFilter's array size, how many countries the child will have assinged and what countries are those.
+After all of this is done, the parent waits each monitor to get ready the bloom filters so the parent will receive them and store them. Here we have a simple sent how many viruses we have first, then for each virus send
+the size of the string that the bloom filter is encrypted to(and send a verification message) and finally receive the bloom filter.
+Each read-write that the processes are doing are happening with the functions in the funcs.cpp/hpp files.
+After that is done the parent proccess receive a confirmation message indicating that the monitor is ready to receive commands and signals.
+For the parent though there is one more thing to be done before being ready for commands, we need to extract the name of the virus from the encoded string and append the bloom filter just read into the existing(or create a new one)
+bloom filter that the parent might have.
+Finally the parent is ready for commands and letting the user know its ready by sending all the available commands and printing the waiting for command message.
+
+For signal action handling and command handling we have a while loop with a switch case inside. The default case is the case were the program waits the user to send commands, this teqnique is the same used in the previous project with
+changes at the /exit command, the functions called for each command and the command text the user will write. Also one major change is that at the end of each while loop we are checking if the action variable changed while we were on a command
+so we break from the inner while loop and we go through the switch-cases to handle the specific signal.
+Now for the signal action handling as we've said before, if the action is se to 1 we are handling SIGINT and SIGQUIT signals, so for that case, since we want to stop the program we do as the /exit user command does, first we delete any allocated memory
+then for each monitor we are sending a SIGKILL signal to kill them and wait for the child process to stop so we wont have any zombie processes. After that for each monitor we close and unlink the file descriptors and the fifos so they will get removed.
+Finally as the assignment says, we generate a logfile with all the nessasary data needed(as said before) and delete the remaining allocated memory.
+For case the action variable is set to 2 indicating we had a SIGCHLD signal, we wait for the child to receive the exit code and find the index of the child in the monitorPids array. After that we need to close and unlink the previous named fifo and create
+a fresh named fifo and child process the same as the begining of the travelMonitor's main function so the new monitor will have the same data as the old one had.
+

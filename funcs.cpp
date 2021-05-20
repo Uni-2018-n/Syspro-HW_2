@@ -1,14 +1,6 @@
 #include "funcs.hpp"
 #include <cstring>
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/errno.h>
-#include <sys/wait.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 int readPipeInt(int fd, int bufferSize){//reading an interger at the fd file descriptor and with bufferSize buffer

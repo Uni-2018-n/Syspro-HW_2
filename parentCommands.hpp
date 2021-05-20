@@ -3,8 +3,6 @@
 
 #include "fromProjectOne/Structures/virusesList.hpp"
 #include "travelStatsList.hpp"
-#include <iostream>
-#include <string>
 
 using namespace std;
 

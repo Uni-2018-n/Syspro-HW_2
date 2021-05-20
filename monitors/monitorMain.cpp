@@ -1,16 +1,5 @@
-#include <csignal>
-#include <iostream>
 #include <fstream>
 #include <cstring>
-#include <string>
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/errno.h>
-#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -19,8 +8,6 @@
 #include <signal.h>
 
 #include "../funcs.hpp"
-#include "../fromProjectOne/generalList.hpp"
-#include "../fromProjectOne/Structures/bloomFilter.hpp"
 #include "commands.hpp"
 #include "../protocol.hpp"
 

@@ -1,29 +1,15 @@
-#include <csignal>
-#include <cstdio>
-#include <iostream>
-#include <cstdlib>
-#include <stdlib.h>
-#include <stdio.h>
 #include <cstring>
-#include <string>
 
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include <dirent.h>
 
-#include <signal.h>
-
-#include "fromProjectOne/Structures/virusesList.hpp"
 #include "funcs.hpp"
 #include "parentCommands.hpp"
 #include "sList.hpp"
-#include "fromProjectOne/Structures/bloomFilter.hpp"
-#include "travelStatsList.hpp"
 
 using namespace std;
 #define PERMS 0666
@@ -301,7 +287,7 @@ int main(int argc, const char** argv){
             default://default case is the user command case
                 while(true){//simple switch-case but for strings
                     string command;
-                    cout << "Waiting for command: " << endl;
+                    cout << "Waiting for command: " << flush;
                     cin >> command;
                     if(cin.fail()){ // if we wait for input and get signal this cin fail and user havent input anything yet so instantly go to specific action
                         cin.clear();
@@ -383,7 +369,6 @@ void handlerCatch(int signo){//simple signal handler
     if(signo == SIGINT || signo == SIGQUIT){
         action = 1;
     }else if(signo == SIGCHLD){
-        cout << "SIGCHLD" << endl;
         action = 2;
     }
 }
