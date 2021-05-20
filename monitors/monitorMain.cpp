@@ -9,7 +9,6 @@
 
 #include "../funcs.hpp"
 #include "commands.hpp"
-#include "../protocol.hpp"
 
 using namespace std;
 int action=0;

@@ -122,3 +122,4 @@ Finally as the assignment says, we generate a logfile with all the nessasary dat
 For case the action variable is set to 2 indicating we had a SIGCHLD signal, we wait for the child to receive the exit code and find the index of the child in the monitorPids array. After that we need to close and unlink the previous named fifo and create
 a fresh named fifo and child process the same as the begining of the travelMonitor's main function so the new monitor will have the same data as the old one had.
 
+This process is always waiting for user input so we wont have any unessasary cpu usage by busy waiting.
