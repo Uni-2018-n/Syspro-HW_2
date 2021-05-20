@@ -9,7 +9,7 @@
 
 #include "funcs.hpp"
 #include "parentCommands.hpp"
-#include "sList.hpp"
+#include "Structures/sList.hpp"
 
 using namespace std;
 #define PERMS 0666

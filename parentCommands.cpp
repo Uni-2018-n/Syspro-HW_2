@@ -6,8 +6,8 @@
 #include <string>
 #include <unistd.h>
 
-#include "fromProjectOne/Structures/virusesList.hpp"
-#include "fromProjectOne/classes.hpp"
+#include "Structures/fromProjectOne/Structures/virusesList.hpp"
+#include "Structures/fromProjectOne/classes.hpp"
 #include "parentCommands.hpp"
 #include "funcs.hpp"
 

@@ -7,7 +7,7 @@
 
 #include <signal.h>
 
-#include "../funcs.hpp"
+#include "funcs.hpp"
 #include "commands.hpp"
 
 using namespace std;

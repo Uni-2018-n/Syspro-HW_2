@@ -1,8 +1,8 @@
 #ifndef _PARENTCOMMANDS_HPP_
 #define _PARENTCOMMANDS_HPP_
 
-#include "fromProjectOne/Structures/virusesList.hpp"
-#include "travelStatsList.hpp"
+#include "Structures/fromProjectOne/Structures/virusesList.hpp"
+#include "Structures/travelStatsList.hpp"
 
 using namespace std;
 

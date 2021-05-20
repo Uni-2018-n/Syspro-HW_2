@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include "commands.hpp"
-#include "../funcs.hpp"
+#include "funcs.hpp"
 
 //functions for the monitor process
 void generateLogFile(int numOfCountries, string countries[], int total, int accepted, int rejected){
